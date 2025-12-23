@@ -10,7 +10,7 @@ import { regenerateRecoveryCodes } from '@/routes/two-factor';
 import { Form } from '@inertiajs/react';
 import { Eye, EyeOff, LockKeyhole, RefreshCw } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import AlertError from './alert-error';
+import AlertError from '../shared/alert-error';
 
 interface TwoFactorRecoveryCodesProps {
     recoveryCodesList: string[];

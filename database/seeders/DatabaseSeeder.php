@@ -3,25 +3,55 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $this->call([
+            RolePermissionSeeder::class,
+        ]);
 
-        User::firstOrCreate(
-            ['email' => 'test@example.com'],
+        $admin = User::firstOrCreate(
+            ['email' => 'admin@example.com'],
             [
-                'name' => 'Test User',
-                'password' => 'password',
+                'name' => 'Administrator',
+                'password' => Hash::make('password'),
                 'email_verified_at' => now(),
             ]
         );
+        $admin->assignRole('admin');
+
+        $purchaseOp = User::firstOrCreate(
+            ['email' => 'purchase@example.com'],
+            [
+                'name' => 'Purchase Operator',
+                'password' => Hash::make('password'),
+                'email_verified_at' => now(),
+            ]
+        );
+        $purchaseOp->assignRole('purchase_operator');
+
+        $salesOp = User::firstOrCreate(
+            ['email' => 'sales@example.com'],
+            [
+                'name' => 'Sales Operator',
+                'password' => Hash::make('password'),
+                'email_verified_at' => now(),
+            ]
+        );
+        $salesOp->assignRole('sales_operator');
+
+        $salesPurchaseOp = User::firstOrCreate(
+            ['email' => 'salespur@example.com'],
+            [
+                'name' => 'Sales Purchase Operator',
+                'password' => Hash::make('password'),
+                'email_verified_at' => now(),
+            ]
+        );
+        $salesPurchaseOp->assignRole('sales_purchase_operator');
     }
 }
