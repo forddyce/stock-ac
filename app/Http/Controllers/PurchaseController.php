@@ -17,7 +17,9 @@ class PurchaseController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('role:admin');
+        $this->middleware('permission:view_purchase', ['only' => ['index', 'show']]);
+        $this->middleware('permission:create_purchase', ['only' => ['create', 'store', 'edit', 'update', 'receive', 'processReceive']]);
+        $this->middleware('permission:create_purchase', ['only' => ['destroy']]);
     }
 
     public function index(Request $request)
@@ -25,20 +27,15 @@ class PurchaseController extends Controller
         $query = Purchase::with(['supplier', 'warehouse', 'creator']);
 
         if ($search = $request->input('search')) {
-            $query->where(function ($q) use ($search) {
-                $q->where('invoice_no', 'like', "%{$search}%")
-                    ->orWhereHas('supplier', function ($q) use ($search) {
-                        $q->where('name', 'like', "%{$search}%");
-                    });
-            });
+            $query->where('invoice_no', 'like', "%{$search}%");
         }
 
-        if ($warehouseId = $request->input('warehouse_id')) {
-            $query->where('warehouse_id', $warehouseId);
+        if ($fromDate = $request->input('from_date')) {
+            $query->whereDate('purchase_date', '>=', $fromDate);
         }
 
-        if ($supplierId = $request->input('supplier_id')) {
-            $query->where('supplier_id', $supplierId);
+        if ($toDate = $request->input('to_date')) {
+            $query->whereDate('purchase_date', '<=', $toDate);
         }
 
         $sortBy = $request->input('sort_by', 'purchase_date');
@@ -47,14 +44,9 @@ class PurchaseController extends Controller
 
         $purchases = $query->paginate(15)->withQueryString();
 
-        $warehouses = Warehouse::active()->get(['id', 'code', 'name']);
-        $suppliers = Supplier::active()->get(['id', 'code', 'name']);
-
         return Inertia::render('purchases/index', [
             'purchases' => $purchases,
-            'warehouses' => $warehouses,
-            'suppliers' => $suppliers,
-            'filters' => $request->only(['search', 'warehouse_id', 'supplier_id', 'sort_by', 'sort_order']),
+            'filters' => $request->only(['search', 'from_date', 'to_date', 'sort_by', 'sort_order']),
         ]);
     }
 

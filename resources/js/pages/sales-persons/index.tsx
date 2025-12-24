@@ -1,3 +1,4 @@
+import ConfirmDialog from '@/components/ConfirmDialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -56,7 +57,10 @@ export default function Index({ salesPersons, filters }: Props) {
     const [active, setActive] = useState(filters.active || 'true');
     const [sortBy, setSortBy] = useState(filters.sort_by || 'code');
     const [sortOrder, setSortOrder] = useState(filters.sort_order || 'asc');
-
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [confirmAction, setConfirmAction] = useState<() => void>(() => {});
+    const [confirmTitle, setConfirmTitle] = useState('');
+    const [confirmDescription, setConfirmDescription] = useState('');
     const handleFilter = () => {
         router.get(
             '/sales-persons',
@@ -78,15 +82,23 @@ export default function Index({ salesPersons, filters }: Props) {
     };
 
     const handleDelete = (id: number) => {
-        if (confirm('Are you sure you want to deactivate this sales person?')) {
-            router.delete(`/sales-persons/${id}`);
-        }
+        setConfirmTitle('Deactivate Sales Person');
+        setConfirmDescription(
+            'Are you sure you want to deactivate this sales person?',
+        );
+        setConfirmAction(() => () => router.delete(`/sales-persons/${id}`));
+        setConfirmOpen(true);
     };
 
     const handleRestore = (id: number) => {
-        if (confirm('Are you sure you want to activate this sales person?')) {
-            router.post(`/sales-persons/${id}/restore`);
-        }
+        setConfirmTitle('Activate Sales Person');
+        setConfirmDescription(
+            'Are you sure you want to activate this sales person?',
+        );
+        setConfirmAction(
+            () => () => router.post(`/sales-persons/${id}/restore`),
+        );
+        setConfirmOpen(true);
     };
 
     return (
@@ -262,6 +274,17 @@ export default function Index({ salesPersons, filters }: Props) {
                         ))}
                     </div>
                 )}
+
+                <ConfirmDialog
+                    open={confirmOpen}
+                    onClose={() => setConfirmOpen(false)}
+                    onConfirm={() => {
+                        confirmAction();
+                        setConfirmOpen(false);
+                    }}
+                    title={confirmTitle}
+                    description={confirmDescription}
+                />
             </div>
         </AppLayout>
     );

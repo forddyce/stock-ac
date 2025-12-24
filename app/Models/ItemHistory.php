@@ -40,4 +40,9 @@ class ItemHistory extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 }

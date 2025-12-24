@@ -1,8 +1,10 @@
+import ConfirmDialog from '@/components/ConfirmDialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import { ArrowLeft, Edit, Package, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 import PurchaseDetailsDisplay from './components/PurchaseDetailsDisplay';
 import PurchaseItemsDisplay from './components/PurchaseItemsDisplay';
 
@@ -53,6 +55,8 @@ interface Props {
 }
 
 export default function Show({ purchase }: Props) {
+    const [confirmOpen, setConfirmOpen] = useState(false);
+
     const getStatusColor = (
         status: 'pending' | 'partial' | 'complete' | 'cancelled',
     ) => {
@@ -69,13 +73,12 @@ export default function Show({ purchase }: Props) {
     };
 
     const handleDelete = () => {
-        if (
-            confirm(
-                'Are you sure you want to delete this purchase? This will reverse any received stock.',
-            )
-        ) {
-            router.delete(`/purchases/${purchase.id}`);
-        }
+        setConfirmOpen(true);
+    };
+
+    const confirmDelete = () => {
+        router.delete(`/purchases/${purchase.id}`);
+        setConfirmOpen(false);
     };
 
     return (
@@ -157,6 +160,14 @@ export default function Show({ purchase }: Props) {
                         total={purchase.total}
                     />
                 </div>
+
+                <ConfirmDialog
+                    open={confirmOpen}
+                    onClose={() => setConfirmOpen(false)}
+                    onConfirm={confirmDelete}
+                    title="Delete Purchase"
+                    description="Are you sure you want to delete this purchase? This will reverse any received stock."
+                />
             </div>
         </AppLayout>
     );

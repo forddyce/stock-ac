@@ -10,6 +10,8 @@ class SalesPerson extends Model
 {
     use SoftDeletes;
 
+    protected $table = 'sales_persons';
+
     protected $fillable = [
         'code',
         'name',

@@ -1,12 +1,6 @@
+import ConfirmDialog from '@/components/ConfirmDialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import {
     Table,
     TableBody,
@@ -16,6 +10,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
+import { formatCurrency } from '@/lib/utils/currency';
 import { Head, Link, router } from '@inertiajs/react';
 import { Eye, Plus, Search, Trash2 } from 'lucide-react';
 import { useState } from 'react';
@@ -28,18 +23,6 @@ interface Purchase {
     purchase_date: string;
     total: number;
     created_at: string;
-}
-
-interface Warehouse {
-    id: number;
-    code: string;
-    name: string;
-}
-
-interface Supplier {
-    id: number;
-    code: string;
-    name: string;
 }
 
 interface Props {
@@ -55,54 +38,48 @@ interface Props {
             active: boolean;
         }>;
     };
-    warehouses: Warehouse[];
-    suppliers: Supplier[];
     filters: {
         search?: string;
-        warehouse_id?: string;
-        supplier_id?: string;
+        from_date?: string;
+        to_date?: string;
         sort_by?: string;
         sort_order?: string;
     };
 }
 
-export default function Index({
-    purchases,
-    warehouses,
-    suppliers,
-    filters,
-}: Props) {
+export default function Index({ purchases, filters }: Props) {
     const [search, setSearch] = useState(filters.search || '');
-    const [warehouseId, setWarehouseId] = useState(filters.warehouse_id || '');
-    const [supplierId, setSupplierId] = useState(filters.supplier_id || '');
+    const [fromDate, setFromDate] = useState(filters.from_date || '');
+    const [toDate, setToDate] = useState(filters.to_date || '');
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState<{
+        id: number;
+        invoiceNo: string;
+    } | null>(null);
 
     const handleFilter = () => {
         router.get(
             '/purchases',
             {
                 search,
-                warehouse_id: warehouseId || undefined,
-                supplier_id: supplierId || undefined,
+                from_date: fromDate || undefined,
+                to_date: toDate || undefined,
             },
             { preserveState: true },
         );
     };
 
     const handleDelete = (id: number, invoiceNo: string) => {
-        if (
-            confirm(
-                `Are you sure you want to delete purchase ${invoiceNo}? This will reverse all stock changes.`,
-            )
-        ) {
-            router.delete(`/purchases/${id}`);
-        }
+        setDeleteTarget({ id, invoiceNo });
+        setConfirmOpen(true);
     };
 
-    const formatCurrency = (value: number) => {
-        return new Intl.NumberFormat('id-ID', {
-            style: 'currency',
-            currency: 'IDR',
-        }).format(value);
+    const confirmDelete = () => {
+        if (deleteTarget) {
+            router.delete(`/purchases/${deleteTarget.id}`);
+        }
+        setConfirmOpen(false);
+        setDeleteTarget(null);
     };
 
     return (
@@ -125,7 +102,7 @@ export default function Index({
                         <div className="relative">
                             <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                             <Input
-                                placeholder="Search by invoice or supplier..."
+                                placeholder="Search by invoice number..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 onKeyDown={(e) =>
@@ -135,38 +112,20 @@ export default function Index({
                             />
                         </div>
                     </div>
-                    <Select value={warehouseId} onValueChange={setWarehouseId}>
-                        <SelectTrigger className="w-48">
-                            <SelectValue placeholder="All Warehouses" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="">All Warehouses</SelectItem>
-                            {warehouses.map((warehouse) => (
-                                <SelectItem
-                                    key={warehouse.id}
-                                    value={warehouse.id.toString()}
-                                >
-                                    {warehouse.name}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                    <Select value={supplierId} onValueChange={setSupplierId}>
-                        <SelectTrigger className="w-48">
-                            <SelectValue placeholder="All Suppliers" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="">All Suppliers</SelectItem>
-                            {suppliers.map((supplier) => (
-                                <SelectItem
-                                    key={supplier.id}
-                                    value={supplier.id.toString()}
-                                >
-                                    {supplier.name}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    <Input
+                        type="date"
+                        placeholder="From Date"
+                        value={fromDate}
+                        onChange={(e) => setFromDate(e.target.value)}
+                        className="w-48"
+                    />
+                    <Input
+                        type="date"
+                        placeholder="To Date"
+                        value={toDate}
+                        onChange={(e) => setToDate(e.target.value)}
+                        className="w-48"
+                    />
                     <Button onClick={handleFilter}>Filter</Button>
                 </div>
 
@@ -275,6 +234,14 @@ export default function Index({
                         ))}
                     </div>
                 )}
+
+                <ConfirmDialog
+                    open={confirmOpen}
+                    onClose={() => setConfirmOpen(false)}
+                    onConfirm={confirmDelete}
+                    title="Delete Purchase"
+                    description={`Are you sure you want to delete purchase ${deleteTarget?.invoiceNo || ''}? This will reverse all stock changes.`}
+                />
             </div>
         </AppLayout>
     );

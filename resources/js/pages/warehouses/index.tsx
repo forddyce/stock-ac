@@ -1,3 +1,4 @@
+import ConfirmDialog from '@/components/ConfirmDialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -69,6 +70,10 @@ export default function WarehousesIndex({
 }: WarehousesIndexProps) {
     const [search, setSearch] = useState(filters.search || '');
     const [activeFilter, setActiveFilter] = useState(filters.active || 'all');
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [confirmAction, setConfirmAction] = useState<() => void>(() => {});
+    const [confirmTitle, setConfirmTitle] = useState('');
+    const [confirmDescription, setConfirmDescription] = useState('');
 
     const handleSearch = (value: string) => {
         setSearch(value);
@@ -92,9 +97,12 @@ export default function WarehousesIndex({
     };
 
     const handleDelete = (id: number) => {
-        if (confirm('Are you sure you want to deactivate this warehouse?')) {
-            router.delete(`/warehouses/${id}`);
-        }
+        setConfirmTitle('Deactivate Warehouse');
+        setConfirmDescription(
+            'Are you sure you want to deactivate this warehouse?',
+        );
+        setConfirmAction(() => () => router.delete(`/warehouses/${id}`));
+        setConfirmOpen(true);
     };
 
     const handleRestore = (id: number) => {
@@ -264,6 +272,17 @@ export default function WarehousesIndex({
                         ))}
                     </div>
                 )}
+
+                <ConfirmDialog
+                    open={confirmOpen}
+                    onClose={() => setConfirmOpen(false)}
+                    onConfirm={() => {
+                        confirmAction();
+                        setConfirmOpen(false);
+                    }}
+                    title={confirmTitle}
+                    description={confirmDescription}
+                />
             </div>
         </AppLayout>
     );

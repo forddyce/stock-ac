@@ -1,3 +1,4 @@
+import ConfirmDialog from '@/components/ConfirmDialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -57,11 +58,20 @@ export default function Index({ suppliers, filters }: Props) {
     const [active, setActive] = useState(filters.active || 'true');
     const [sortBy, setSortBy] = useState(filters.sort_by || 'code');
     const [sortOrder, setSortOrder] = useState(filters.sort_order || 'asc');
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [confirmAction, setConfirmAction] = useState<() => void>(() => {});
+    const [confirmTitle, setConfirmTitle] = useState('');
+    const [confirmDescription, setConfirmDescription] = useState('');
 
     const handleFilter = () => {
         router.get(
             '/suppliers',
-            { search, active, sort_by: sortBy, sort_order: sortOrder },
+            {
+                search,
+                active: active === 'all' ? undefined : active,
+                sort_by: sortBy,
+                sort_order: sortOrder,
+            },
             { preserveState: true },
         );
     };
@@ -79,15 +89,21 @@ export default function Index({ suppliers, filters }: Props) {
     };
 
     const handleDelete = (id: number) => {
-        if (confirm('Are you sure you want to deactivate this supplier?')) {
-            router.delete(`/suppliers/${id}`);
-        }
+        setConfirmTitle('Deactivate Supplier');
+        setConfirmDescription(
+            'Are you sure you want to deactivate this supplier?',
+        );
+        setConfirmAction(() => () => router.delete(`/suppliers/${id}`));
+        setConfirmOpen(true);
     };
 
     const handleRestore = (id: number) => {
-        if (confirm('Are you sure you want to activate this supplier?')) {
-            router.post(`/suppliers/${id}/restore`);
-        }
+        setConfirmTitle('Activate Supplier');
+        setConfirmDescription(
+            'Are you sure you want to activate this supplier?',
+        );
+        setConfirmAction(() => () => router.post(`/suppliers/${id}/restore`));
+        setConfirmOpen(true);
     };
 
     return (
@@ -120,14 +136,14 @@ export default function Index({ suppliers, filters }: Props) {
                             />
                         </div>
                     </div>
-                    <Select value={active} onValueChange={setActive}>
+                    <Select value={active || 'all'} onValueChange={setActive}>
                         <SelectTrigger className="w-40">
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="true">Active</SelectItem>
                             <SelectItem value="false">Inactive</SelectItem>
-                            <SelectItem value="">All</SelectItem>
+                            <SelectItem value="all">All</SelectItem>
                         </SelectContent>
                     </Select>
                     <Button onClick={handleFilter}>Filter</Button>
@@ -265,6 +281,17 @@ export default function Index({ suppliers, filters }: Props) {
                         ))}
                     </div>
                 )}
+
+                <ConfirmDialog
+                    open={confirmOpen}
+                    onClose={() => setConfirmOpen(false)}
+                    onConfirm={() => {
+                        confirmAction();
+                        setConfirmOpen(false);
+                    }}
+                    title={confirmTitle}
+                    description={confirmDescription}
+                />
             </div>
         </AppLayout>
     );
