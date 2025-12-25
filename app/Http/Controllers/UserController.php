@@ -20,7 +20,8 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $query = User::with('roles')
-            ->orderBy('name');
+            ->orderBy('name')
+            ->where('email', '!=', 'admin@abc-elektronik.com');
 
         if ($request->filled('search')) {
             $search = $request->search;

@@ -20,7 +20,7 @@ export default function DeleteUser() {
     const passwordInput = useRef<HTMLInputElement>(null);
 
     return (
-        <div className="space-y-6">
+        <div className="py-6">
             <HeadingSmall
                 title="Delete account"
                 description="Delete your account and all of its resources"
@@ -60,7 +60,7 @@ export default function DeleteUser() {
                             }}
                             onError={() => passwordInput.current?.focus()}
                             resetOnSuccess
-                            className="space-y-6"
+                            className="py-6"
                         >
                             {({ resetAndClearErrors, processing, errors }) => (
                                 <>

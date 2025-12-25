@@ -90,7 +90,7 @@ export default function SalesReportFilter({
                                 <SelectValue placeholder="Semua Sales" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="">Semua Sales</SelectItem>
+                                <SelectItem value="all">Semua Sales</SelectItem>
                                 {salesPersons.map((sp) => (
                                     <SelectItem
                                         key={sp.id}

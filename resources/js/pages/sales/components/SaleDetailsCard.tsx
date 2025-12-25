@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Combobox } from '@/components/ui/combobox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -13,6 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 interface Customer {
     id: number;
     name: string;
+    code: string;
 }
 
 interface Warehouse {
@@ -60,26 +62,19 @@ export default function SaleDetailsCard({
                         <Label htmlFor="customer_id" className="text-zinc-200">
                             Customer *
                         </Label>
-                        <Select
+                        <Combobox
                             value={formData.customer_id}
                             onValueChange={(value) =>
                                 onChange('customer_id', value)
                             }
-                        >
-                            <SelectTrigger className="border-zinc-700 bg-zinc-900 text-white">
-                                <SelectValue placeholder="Select customer" />
-                            </SelectTrigger>
-                            <SelectContent className="border-zinc-700 bg-zinc-900">
-                                {customers.map((customer) => (
-                                    <SelectItem
-                                        key={customer.id}
-                                        value={customer.id.toString()}
-                                    >
-                                        {customer.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                            options={customers.map((customer) => ({
+                                value: customer.id.toString(),
+                                label: `${customer.code} - ${customer.name}`,
+                            }))}
+                            placeholder="Select customer"
+                            searchPlaceholder="Search customers..."
+                            emptyText="No customers found."
+                        />
                         {errors.customer_id && (
                             <p className="mt-1 text-sm text-red-500">
                                 {errors.customer_id}
@@ -174,7 +169,7 @@ export default function SaleDetailsCard({
 
                     <div>
                         <Label htmlFor="invoice_no" className="text-zinc-200">
-                            Invoice Number
+                            Invoice Number *
                         </Label>
                         <Input
                             id="invoice_no"
@@ -184,6 +179,7 @@ export default function SaleDetailsCard({
                             }
                             className="border-zinc-700 bg-zinc-900 text-white"
                             placeholder="INV-001"
+                            required
                         />
                         {errors.invoice_no && (
                             <p className="mt-1 text-sm text-red-500">

@@ -41,7 +41,7 @@ interface Purchase {
         status: 'pending' | 'partial' | 'complete';
         item: {
             id: number;
-            sku: string;
+            code: string;
             name: string;
             unit: string;
         };
@@ -177,7 +177,7 @@ export default function Receive({ purchase }: Props) {
                                                 Remaining
                                             </TableHead>
                                             <TableHead className="text-right text-zinc-300">
-                                                Receive Now
+                                                Received Now
                                             </TableHead>
                                             <TableHead className="text-zinc-300">
                                                 Notes
@@ -203,7 +203,7 @@ export default function Receive({ purchase }: Props) {
                                                                 {item.item.name}
                                                             </p>
                                                             <p className="text-sm text-zinc-400">
-                                                                {item.item.sku}
+                                                                {item.item.code}
                                                             </p>
                                                         </div>
                                                     </TableCell>

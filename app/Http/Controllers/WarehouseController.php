@@ -62,14 +62,28 @@ class WarehouseController extends Controller
             'is_active' => 'boolean',
         ]);
 
-        Warehouse::create($validated);
+        $warehouseData = [
+            'code' => $validated['code'],
+            'name' => $validated['name'],
+            'is_active' => $validated['is_active'] ?? true,
+        ];
+
+        if (!empty($validated['address'])) {
+            $warehouseData['address'] = $validated['address'];
+        }
+        if (!empty($validated['phone'])) {
+            $warehouseData['phone'] = $validated['phone'];
+        }
+
+        Warehouse::create($warehouseData);
 
         return redirect()->route('warehouses.index')
             ->with('success', 'Warehouse created successfully.');
     }
 
-    public function edit(Warehouse $warehouse)
+    public function edit($id)
     {
+        $warehouse = Warehouse::withTrashed()->findOrFail($id);
         $warehouse->load([]);
 
         return Inertia::render('warehouses/edit', [
@@ -77,8 +91,10 @@ class WarehouseController extends Controller
         ]);
     }
 
-    public function update(Request $request, Warehouse $warehouse)
+    public function update(Request $request, $id)
     {
+        $warehouse = Warehouse::withTrashed()->findOrFail($id);
+
         $validated = $request->validate([
             'code' => 'required|string|max:50|unique:warehouses,code,' . $warehouse->id,
             'name' => 'required|string|max:255',
@@ -87,7 +103,25 @@ class WarehouseController extends Controller
             'is_active' => 'boolean',
         ]);
 
-        $warehouse->update($validated);
+        $warehouseData = [
+            'code' => $validated['code'],
+            'name' => $validated['name'],
+        ];
+
+        if (!empty($validated['address'])) {
+            $warehouseData['address'] = $validated['address'];
+        }
+        if (!empty($validated['phone'])) {
+            $warehouseData['phone'] = $validated['phone'];
+        }
+
+        $warehouse->update($warehouseData);
+
+        if ($validated['is_active'] && $warehouse->trashed()) {
+            $warehouse->restore();
+        } elseif (!$validated['is_active'] && !$warehouse->trashed()) {
+            $warehouse->delete();
+        }
 
         return redirect()->route('warehouses.index')
             ->with('success', 'Warehouse updated successfully.');

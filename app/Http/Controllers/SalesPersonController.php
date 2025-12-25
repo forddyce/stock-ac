@@ -61,21 +61,37 @@ class SalesPersonController extends Controller
             'email' => 'nullable|email|max:255',
         ]);
 
-        SalesPerson::create($validated);
+        $salesPersonData = [
+            'code' => $validated['code'],
+            'name' => $validated['name'],
+        ];
+
+        if (!empty($validated['phone'])) {
+            $salesPersonData['phone'] = $validated['phone'];
+        }
+        if (!empty($validated['email'])) {
+            $salesPersonData['email'] = $validated['email'];
+        }
+
+        SalesPerson::create($salesPersonData);
 
         return redirect()->route('sales-persons.index')
             ->with('success', 'Sales person created successfully.');
     }
 
-    public function edit(SalesPerson $salesPerson)
+    public function edit($id)
     {
+        $salesPerson = SalesPerson::withTrashed()->findOrFail($id);
+
         return Inertia::render('sales-persons/edit', [
             'salesPerson' => $salesPerson,
         ]);
     }
 
-    public function update(Request $request, SalesPerson $salesPerson)
+    public function update(Request $request, $id)
     {
+        $salesPerson = SalesPerson::withTrashed()->findOrFail($id);
+
         $validated = $request->validate([
             'code' => 'required|string|max:50|unique:sales_persons,code,' . $salesPerson->id,
             'name' => 'required|string|max:255',
@@ -83,7 +99,19 @@ class SalesPersonController extends Controller
             'email' => 'nullable|email|max:255',
         ]);
 
-        $salesPerson->update($validated);
+        $salesPersonData = [
+            'code' => $validated['code'],
+            'name' => $validated['name'],
+        ];
+
+        if (!empty($validated['phone'])) {
+            $salesPersonData['phone'] = $validated['phone'];
+        }
+        if (!empty($validated['email'])) {
+            $salesPersonData['email'] = $validated['email'];
+        }
+
+        $salesPerson->update($salesPersonData);
 
         return redirect()->route('sales-persons.index')
             ->with('success', 'Sales person updated successfully.');

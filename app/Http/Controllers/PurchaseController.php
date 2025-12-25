@@ -54,7 +54,7 @@ class PurchaseController extends Controller
     {
         $warehouses = Warehouse::active()->get(['id', 'code', 'name']);
         $suppliers = Supplier::active()->get(['id', 'code', 'name']);
-        $items = Item::active()->get(['id', 'sku', 'name', 'unit']);
+        $items = Item::active()->get(['id', 'code', 'name', 'unit']);
 
         return Inertia::render('purchases/create', [
             'warehouses' => $warehouses,
@@ -126,7 +126,7 @@ class PurchaseController extends Controller
         $purchase->load('items.item');
         $warehouses = Warehouse::active()->get(['id', 'code', 'name']);
         $suppliers = Supplier::active()->get(['id', 'code', 'name']);
-        $items = Item::active()->get(['id', 'sku', 'name', 'unit']);
+        $items = Item::active()->get(['id', 'code', 'name', 'unit']);
 
         return Inertia::render('purchases/edit', [
             'purchase' => $purchase,
@@ -163,20 +163,22 @@ class PurchaseController extends Controller
                     ])->first();
 
                     if ($warehouseItem) {
-                        $warehouseItem->decrement('qty', $oldItem->qty_received);
-                    }
+                        $qtyBefore = $warehouseItem->stock;
+                        $warehouseItem->decrement('stock', $oldItem->qty_received);
 
-                    ItemHistory::create([
-                        'item_id' => $oldItem->item_id,
-                        'warehouse_id' => $purchase->warehouse_id,
-                        'type' => 'purchase_reversal',
-                        'reference_type' => Purchase::class,
-                        'reference_id' => $purchase->id,
-                        'qty' => -$oldItem->qty_received,
-                        'balance' => $warehouseItem ? $warehouseItem->qty : 0,
-                        'notes' => "Purchase {$purchase->invoice_no} updated",
-                        'created_by' => Auth::id(),
-                    ]);
+                        ItemHistory::create([
+                            'batch_id' => 'PUR-REV-' . $purchase->id . '-' . now()->format('YmdHis'),
+                            'item_id' => $oldItem->item_id,
+                            'warehouse_id' => $purchase->warehouse_id,
+                            'transaction_type' => 'adjustment',
+                            'reference_id' => $purchase->id,
+                            'qty_before' => $qtyBefore,
+                            'qty_change' => -$oldItem->qty_received,
+                            'qty_after' => $warehouseItem->stock,
+                            'notes' => "Purchase {$purchase->invoice_no} updated",
+                            'user_id' => Auth::id(),
+                        ]);
+                    }
                 }
             }
 
@@ -222,20 +224,22 @@ class PurchaseController extends Controller
                     ])->first();
 
                     if ($warehouseItem) {
-                        $warehouseItem->decrement('qty', $item->qty_received);
-                    }
+                        $qtyBefore = $warehouseItem->stock;
+                        $warehouseItem->decrement('stock', $item->qty_received);
 
-                    ItemHistory::create([
-                        'item_id' => $item->item_id,
-                        'warehouse_id' => $purchase->warehouse_id,
-                        'type' => 'purchase_reversal',
-                        'reference_type' => Purchase::class,
-                        'reference_id' => $purchase->id,
-                        'qty' => -$item->qty_received,
-                        'balance' => $warehouseItem ? $warehouseItem->qty : 0,
-                        'notes' => "Purchase {$purchase->invoice_no} deleted",
-                        'created_by' => Auth::id(),
-                    ]);
+                        ItemHistory::create([
+                            'batch_id' => 'PUR-DEL-' . $purchase->id . '-' . now()->format('YmdHis'),
+                            'item_id' => $item->item_id,
+                            'warehouse_id' => $purchase->warehouse_id,
+                            'transaction_type' => 'adjustment',
+                            'reference_id' => $purchase->id,
+                            'qty_before' => $qtyBefore,
+                            'qty_change' => -$item->qty_received,
+                            'qty_after' => $warehouseItem->stock,
+                            'notes' => "Purchase {$purchase->invoice_no} deleted",
+                            'user_id' => Auth::id(),
+                        ]);
+                    }
                 }
             }
 
@@ -284,21 +288,24 @@ class PurchaseController extends Controller
                             'warehouse_id' => $purchase->warehouse_id,
                             'item_id' => $purchaseItem->item_id,
                         ],
-                        ['qty' => 0]
+                        ['stock' => 0]
                     );
 
-                    $warehouseItem->increment('qty', $qtyToReceive);
+                    $warehouseItem->increment('stock', $qtyToReceive);
+
+                    $qtyBefore = $warehouseItem->stock - $qtyToReceive;
 
                     ItemHistory::create([
+                        'batch_id' => 'PUR-RCV-' . $purchase->id . '-' . now()->format('YmdHis'),
                         'item_id' => $purchaseItem->item_id,
                         'warehouse_id' => $purchase->warehouse_id,
-                        'type' => 'purchase_receive',
-                        'reference_type' => Purchase::class,
+                        'transaction_type' => 'purchase',
                         'reference_id' => $purchase->id,
-                        'qty' => $qtyToReceive,
-                        'balance' => $warehouseItem->qty,
+                        'qty_before' => $qtyBefore,
+                        'qty_change' => $qtyToReceive,
+                        'qty_after' => $warehouseItem->stock,
                         'notes' => "Received for purchase {$purchase->invoice_no}" . ($itemData['notes'] ? ": {$itemData['notes']}" : ''),
-                        'created_by' => Auth::id(),
+                        'user_id' => Auth::id(),
                     ]);
 
                     $purchaseItem->update([

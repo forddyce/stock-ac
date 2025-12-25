@@ -74,14 +74,23 @@ class ItemController extends Controller
         ]);
 
         DB::transaction(function () use ($validated) {
-            $item = Item::create([
+            $itemData = [
                 'code' => $validated['code'],
                 'name' => $validated['name'],
-                'unit' => $validated['unit'] ?? null,
-                'category' => $validated['category'] ?? null,
-                'description' => $validated['description'] ?? null,
                 'is_active' => $validated['is_active'] ?? true,
-            ]);
+            ];
+
+            if (!empty($validated['unit'])) {
+                $itemData['unit'] = $validated['unit'];
+            }
+            if (!empty($validated['category'])) {
+                $itemData['category'] = $validated['category'];
+            }
+            if (!empty($validated['description'])) {
+                $itemData['description'] = $validated['description'];
+            }
+
+            $item = Item::create($itemData);
 
             if (!empty($validated['initial_stock'])) {
                 foreach ($validated['initial_stock'] as $stock) {
@@ -99,17 +108,19 @@ class ItemController extends Controller
             ->with('success', 'Item created successfully.');
     }
 
-    public function edit(Item $item)
+    public function edit($id)
     {
-        $item->load('warehouseItems.warehouse');
+        $item = Item::withTrashed()->with('warehouseItems.warehouse')->findOrFail($id);
 
         return Inertia::render('items/edit', [
             'item' => $item,
         ]);
     }
 
-    public function update(Request $request, Item $item)
+    public function update(Request $request, $id)
     {
+        $item = Item::withTrashed()->findOrFail($id);
+
         $validated = $request->validate([
             'code' => 'required|string|max:50|unique:items,code,' . $item->id,
             'name' => 'required|string|max:255',
@@ -126,14 +137,28 @@ class ItemController extends Controller
             ]);
         }
 
-        $item->update([
+        $itemData = [
             'code' => $validated['code'],
             'name' => $validated['name'],
-            'unit' => $validated['unit'] ?? null,
-            'category' => $validated['category'] ?? null,
-            'description' => $validated['description'] ?? null,
-            'is_active' => $validated['is_active'] ?? true,
-        ]);
+        ];
+
+        if (!empty($validated['unit'])) {
+            $itemData['unit'] = $validated['unit'];
+        }
+        if (!empty($validated['category'])) {
+            $itemData['category'] = $validated['category'];
+        }
+        if (!empty($validated['description'])) {
+            $itemData['description'] = $validated['description'];
+        }
+
+        $item->update($itemData);
+
+        if ($validated['is_active'] && $item->trashed()) {
+            $item->restore();
+        } elseif (!$validated['is_active'] && !$item->trashed()) {
+            $item->delete();
+        }
 
         return redirect()->route('items.index')
             ->with('success', 'Item updated successfully.');

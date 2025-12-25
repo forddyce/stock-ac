@@ -68,12 +68,12 @@ export default function Index({ transfers, warehouses, filters }: Props) {
     const [search, setSearch] = useState(filters.search || '');
     const [fromDate, setFromDate] = useState(filters.from_date || '');
     const [toDate, setToDate] = useState(filters.to_date || '');
-    const [status, setStatus] = useState(filters.status || '');
+    const [status, setStatus] = useState(filters.status || 'all');
     const [fromWarehouseId, setFromWarehouseId] = useState(
-        filters.from_warehouse_id || '',
+        filters.from_warehouse_id || 'all',
     );
     const [toWarehouseId, setToWarehouseId] = useState(
-        filters.to_warehouse_id || '',
+        filters.to_warehouse_id || 'all',
     );
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
@@ -85,9 +85,11 @@ export default function Index({ transfers, warehouses, filters }: Props) {
                 search,
                 from_date: fromDate || undefined,
                 to_date: toDate || undefined,
-                status: status || undefined,
-                from_warehouse_id: fromWarehouseId || undefined,
-                to_warehouse_id: toWarehouseId || undefined,
+                status: status !== 'all' ? status : undefined,
+                from_warehouse_id:
+                    fromWarehouseId !== 'all' ? fromWarehouseId : undefined,
+                to_warehouse_id:
+                    toWarehouseId !== 'all' ? toWarehouseId : undefined,
             },
             { preserveState: true },
         );
@@ -191,7 +193,7 @@ export default function Index({ transfers, warehouses, filters }: Props) {
                             <SelectValue placeholder="All Status" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="">All Status</SelectItem>
+                            <SelectItem value="all">All Status</SelectItem>
                             <SelectItem value="pending">Pending</SelectItem>
                             <SelectItem value="in_transit">
                                 In Transit
@@ -208,7 +210,7 @@ export default function Index({ transfers, warehouses, filters }: Props) {
                             <SelectValue placeholder="From Warehouse" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="">All Warehouses</SelectItem>
+                            <SelectItem value="all">All Warehouses</SelectItem>
                             {warehouses.map((warehouse) => (
                                 <SelectItem
                                     key={warehouse.id}
@@ -227,7 +229,7 @@ export default function Index({ transfers, warehouses, filters }: Props) {
                             <SelectValue placeholder="To Warehouse" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="">All Warehouses</SelectItem>
+                            <SelectItem value="all">All Warehouses</SelectItem>
                             {warehouses.map((warehouse) => (
                                 <SelectItem
                                     key={warehouse.id}

@@ -1,4 +1,5 @@
 import ConfirmDialog from '@/components/ConfirmDialog';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -21,6 +22,7 @@ interface Purchase {
     supplier: { id: number; name: string };
     warehouse: { id: number; name: string };
     purchase_date: string;
+    status: 'pending' | 'partial' | 'complete' | 'cancelled';
     total: number;
     created_at: string;
 }
@@ -82,6 +84,21 @@ export default function Index({ purchases, filters }: Props) {
         setDeleteTarget(null);
     };
 
+    const getStatusBadge = (status: Purchase['status']) => {
+        const colors: Record<Purchase['status'], string> = {
+            pending: 'bg-yellow-500/10 text-yellow-500',
+            partial: 'bg-blue-500/10 text-blue-500',
+            complete: 'bg-green-500/10 text-green-500',
+            cancelled: 'bg-red-500/10 text-red-500',
+        };
+
+        return (
+            <Badge className={colors[status]}>
+                {status.charAt(0).toUpperCase() + status.slice(1)}
+            </Badge>
+        );
+    };
+
     return (
         <AppLayout>
             <Head title="Purchases" />
@@ -137,6 +154,7 @@ export default function Index({ purchases, filters }: Props) {
                                 <TableHead>Date</TableHead>
                                 <TableHead>Supplier</TableHead>
                                 <TableHead>Warehouse</TableHead>
+                                <TableHead>Status</TableHead>
                                 <TableHead className="text-right">
                                     Total
                                 </TableHead>
@@ -149,7 +167,7 @@ export default function Index({ purchases, filters }: Props) {
                             {purchases.data.length === 0 ? (
                                 <TableRow>
                                     <TableCell
-                                        colSpan={6}
+                                        colSpan={7}
                                         className="text-center text-muted-foreground"
                                     >
                                         No purchases found
@@ -171,6 +189,9 @@ export default function Index({ purchases, filters }: Props) {
                                         </TableCell>
                                         <TableCell>
                                             {purchase.warehouse.name}
+                                        </TableCell>
+                                        <TableCell>
+                                            {getStatusBadge(purchase.status)}
                                         </TableCell>
                                         <TableCell className="text-right font-medium">
                                             {formatCurrency(purchase.total)}

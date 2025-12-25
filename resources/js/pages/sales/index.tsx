@@ -70,8 +70,8 @@ export default function Index({ sales, customers, filters }: Props) {
     const [search, setSearch] = useState(filters.search || '');
     const [fromDate, setFromDate] = useState(filters.from_date || '');
     const [toDate, setToDate] = useState(filters.to_date || '');
-    const [status, setStatus] = useState(filters.status || '');
-    const [customerId, setCustomerId] = useState(filters.customer_id || '');
+    const [status, setStatus] = useState(filters.status || 'all');
+    const [customerId, setCustomerId] = useState(filters.customer_id || 'all');
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState<{
         id: number;
@@ -85,8 +85,8 @@ export default function Index({ sales, customers, filters }: Props) {
                 search,
                 from_date: fromDate || undefined,
                 to_date: toDate || undefined,
-                status: status || undefined,
-                customer_id: customerId || undefined,
+                status: status !== 'all' ? status : undefined,
+                customer_id: customerId !== 'all' ? customerId : undefined,
             },
             { preserveState: true },
         );
@@ -187,7 +187,7 @@ export default function Index({ sales, customers, filters }: Props) {
                             <SelectValue placeholder="All Status" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="">All Status</SelectItem>
+                            <SelectItem value="all">All Status</SelectItem>
                             <SelectItem value="pending">Pending</SelectItem>
                             <SelectItem value="partial">Partial</SelectItem>
                             <SelectItem value="complete">Complete</SelectItem>
@@ -199,7 +199,7 @@ export default function Index({ sales, customers, filters }: Props) {
                             <SelectValue placeholder="All Customers" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="">All Customers</SelectItem>
+                            <SelectItem value="all">All Customers</SelectItem>
                             {customers.map((customer) => (
                                 <SelectItem
                                     key={customer.id}

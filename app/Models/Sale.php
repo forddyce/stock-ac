@@ -49,7 +49,7 @@ class Sale extends Model
 
     public function salesPerson(): BelongsTo
     {
-        return $this->belongsTo(SalesPerson::class);
+        return $this->belongsTo(SalesPerson::class, 'sales_person_id');
     }
 
     public function creator(): BelongsTo

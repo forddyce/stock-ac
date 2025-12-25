@@ -23,7 +23,7 @@ interface Warehouse {
 interface Item {
     id: number;
     name: string;
-    sku: string;
+    code: string;
     unit: string;
 }
 
@@ -351,7 +351,7 @@ export default function Edit({ transfer, warehouses, items }: Props) {
                                                                 key={itm.id}
                                                                 value={itm.id.toString()}
                                                             >
-                                                                {itm.sku} -{' '}
+                                                                {itm.code} -{' '}
                                                                 {itm.name}
                                                             </SelectItem>
                                                         ))}

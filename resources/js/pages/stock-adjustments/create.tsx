@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Combobox } from '@/components/ui/combobox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -23,7 +24,7 @@ interface Warehouse {
 interface Item {
     id: number;
     name: string;
-    sku: string;
+    code: string;
     unit: string;
 }
 
@@ -296,7 +297,7 @@ export default function Create({ warehouses, items }: Props) {
                                                 <Label className="text-xs text-zinc-200">
                                                     Item *
                                                 </Label>
-                                                <Select
+                                                <Combobox
                                                     value={item.item_id}
                                                     onValueChange={(value) =>
                                                         handleItemChange(
@@ -305,22 +306,16 @@ export default function Create({ warehouses, items }: Props) {
                                                             value,
                                                         )
                                                     }
-                                                >
-                                                    <SelectTrigger className="border-zinc-700 bg-zinc-900 text-white">
-                                                        <SelectValue placeholder="Select item" />
-                                                    </SelectTrigger>
-                                                    <SelectContent className="border-zinc-700 bg-zinc-900">
-                                                        {items.map((itm) => (
-                                                            <SelectItem
-                                                                key={itm.id}
-                                                                value={itm.id.toString()}
-                                                            >
-                                                                {itm.sku} -{' '}
-                                                                {itm.name}
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
+                                                    options={items.map(
+                                                        (itm) => ({
+                                                            value: itm.id.toString(),
+                                                            label: `${itm.code} - ${itm.name}`,
+                                                        }),
+                                                    )}
+                                                    placeholder="Select item"
+                                                    searchPlaceholder="Search items..."
+                                                    emptyText="No items found."
+                                                />
                                                 {errors[
                                                     `items.${index}.item_id`
                                                 ] && (

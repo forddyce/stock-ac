@@ -54,7 +54,7 @@ interface Props {
 
 export default function Index({ salesPersons, filters }: Props) {
     const [search, setSearch] = useState(filters.search || '');
-    const [active, setActive] = useState(filters.active || 'true');
+    const [active, setActive] = useState(filters.active || 'all');
     const [sortBy, setSortBy] = useState(filters.sort_by || 'code');
     const [sortOrder, setSortOrder] = useState(filters.sort_order || 'asc');
     const [confirmOpen, setConfirmOpen] = useState(false);
@@ -64,7 +64,12 @@ export default function Index({ salesPersons, filters }: Props) {
     const handleFilter = () => {
         router.get(
             '/sales-persons',
-            { search, active, sort_by: sortBy, sort_order: sortOrder },
+            {
+                search,
+                active: active !== 'all' ? active : undefined,
+                sort_by: sortBy,
+                sort_order: sortOrder,
+            },
             { preserveState: true },
         );
     };
@@ -76,7 +81,12 @@ export default function Index({ salesPersons, filters }: Props) {
         setSortOrder(newOrder);
         router.get(
             '/sales-persons',
-            { search, active, sort_by: column, sort_order: newOrder },
+            {
+                search,
+                active: active !== 'all' ? active : undefined,
+                sort_by: column,
+                sort_order: newOrder,
+            },
             { preserveState: true },
         );
     };
@@ -138,7 +148,7 @@ export default function Index({ salesPersons, filters }: Props) {
                         <SelectContent>
                             <SelectItem value="true">Active</SelectItem>
                             <SelectItem value="false">Inactive</SelectItem>
-                            <SelectItem value="">All</SelectItem>
+                            <SelectItem value="all">All</SelectItem>
                         </SelectContent>
                     </Select>
                     <Button onClick={handleFilter}>Filter</Button>

@@ -21,7 +21,7 @@ interface SaleItem {
     id: number;
     item_id: number;
     qty_ordered: number;
-    unit_price: number;
+    price: number;
     subtotal: number;
     item: Item;
 }
@@ -34,10 +34,10 @@ interface Sale {
         id: number;
         name: string;
     };
-    salesPerson: {
+    sales_person: {
         id: number;
         name: string;
-    };
+    } | null;
     total: number;
     items: SaleItem[];
 }

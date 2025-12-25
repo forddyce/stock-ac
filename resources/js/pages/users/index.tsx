@@ -68,7 +68,7 @@ const roleColors: Record<string, string> = {
 
 export default function UserIndex({ users, roles, filters }: Props) {
     const [search, setSearch] = useState(filters.search || '');
-    const [roleFilter, setRoleFilter] = useState(filters.role || '');
+    const [roleFilter, setRoleFilter] = useState(filters.role || 'all');
     const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
 
     const handleSearch = () => {
@@ -76,7 +76,7 @@ export default function UserIndex({ users, roles, filters }: Props) {
             '/users',
             {
                 search: search || undefined,
-                role: roleFilter || undefined,
+                role: roleFilter !== 'all' ? roleFilter : undefined,
             },
             {
                 preserveState: true,
@@ -140,7 +140,7 @@ export default function UserIndex({ users, roles, filters }: Props) {
                             <SelectValue placeholder="All Roles" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="">All Roles</SelectItem>
+                            <SelectItem value="all">All Roles</SelectItem>
                             {roles.map((role) => (
                                 <SelectItem key={role.id} value={role.name}>
                                     {role.name

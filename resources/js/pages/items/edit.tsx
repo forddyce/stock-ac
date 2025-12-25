@@ -237,7 +237,7 @@ export default function ItemEdit({ item }: ItemEditProps) {
                             </Card>
                         )}
 
-                    <div className="flex items-center gap-4">
+                    <div className="mt-4 flex items-center gap-4">
                         <Button type="submit" disabled={processing}>
                             {processing && (
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

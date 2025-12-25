@@ -63,21 +63,40 @@ class CustomerController extends Controller
             'address' => 'nullable|string',
         ]);
 
-        Customer::create($validated);
+        $customerData = [
+            'code' => $validated['code'],
+            'name' => $validated['name'],
+        ];
+
+        if (!empty($validated['phone'])) {
+            $customerData['phone'] = $validated['phone'];
+        }
+        if (!empty($validated['email'])) {
+            $customerData['email'] = $validated['email'];
+        }
+        if (!empty($validated['address'])) {
+            $customerData['address'] = $validated['address'];
+        }
+
+        Customer::create($customerData);
 
         return redirect()->route('customers.index')
             ->with('success', 'Customer created successfully.');
     }
 
-    public function edit(Customer $customer)
+    public function edit($id)
     {
+        $customer = Customer::withTrashed()->findOrFail($id);
+
         return Inertia::render('customers/edit', [
             'customer' => $customer,
         ]);
     }
 
-    public function update(Request $request, Customer $customer)
+    public function update(Request $request, $id)
     {
+        $customer = Customer::withTrashed()->findOrFail($id);
+
         $validated = $request->validate([
             'code' => 'required|string|max:50|unique:customers,code,' . $customer->id,
             'name' => 'required|string|max:255',
@@ -86,7 +105,22 @@ class CustomerController extends Controller
             'address' => 'nullable|string',
         ]);
 
-        $customer->update($validated);
+        $customerData = [
+            'code' => $validated['code'],
+            'name' => $validated['name'],
+        ];
+
+        if (!empty($validated['phone'])) {
+            $customerData['phone'] = $validated['phone'];
+        }
+        if (!empty($validated['email'])) {
+            $customerData['email'] = $validated['email'];
+        }
+        if (!empty($validated['address'])) {
+            $customerData['address'] = $validated['address'];
+        }
+
+        $customer->update($customerData);
 
         return redirect()->route('customers.index')
             ->with('success', 'Customer updated successfully.');

@@ -19,7 +19,7 @@ interface SaleItem {
     id: number;
     item_id: number;
     qty_ordered: number;
-    unit_price: number;
+    price: number;
     subtotal: number;
     item: Item;
 }
@@ -32,10 +32,10 @@ interface Sale {
         id: number;
         name: string;
     };
-    salesPerson: {
+    sales_person: {
         id: number;
         name: string;
-    };
+    } | null;
     total: number;
     items: SaleItem[];
 }
@@ -132,7 +132,8 @@ export default function SalesReportTable({ sales }: Props) {
                                                     {sale.customer.name}
                                                 </TableCell>
                                                 <TableCell className="text-zinc-300">
-                                                    {sale.salesPerson.name}
+                                                    {sale.sales_person?.name ||
+                                                        '-'}
                                                 </TableCell>
                                             </>
                                         ) : (
@@ -150,7 +151,7 @@ export default function SalesReportTable({ sales }: Props) {
                                             {item.qty_ordered}
                                         </TableCell>
                                         <TableCell className="text-right text-zinc-300">
-                                            {formatCurrency(item.unit_price)}
+                                            {formatCurrency(item.price)}
                                         </TableCell>
                                         <TableCell className="text-right text-zinc-300">
                                             {formatCurrency(item.subtotal)}

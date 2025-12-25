@@ -20,7 +20,7 @@ interface SaleItem {
     notes: string;
     item: {
         id: number;
-        sku: string;
+        code: string;
         name: string;
         unit: string;
     };
@@ -93,7 +93,7 @@ export default function SaleItemsDisplay({
                                             {item.item.name}
                                         </p>
                                         <p className="text-sm text-zinc-400">
-                                            {item.item.sku}
+                                            {item.item.code}
                                         </p>
                                     </div>
                                 </TableCell>
@@ -112,18 +112,24 @@ export default function SaleItemsDisplay({
                                     </span>
                                 </TableCell>
                                 <TableCell className="text-right text-white">
-                                    {item.price.toLocaleString('id-ID', {
-                                        style: 'currency',
-                                        currency: 'IDR',
-                                        minimumFractionDigits: 0,
-                                    })}
+                                    {Number(item.price).toLocaleString(
+                                        'id-ID',
+                                        {
+                                            style: 'currency',
+                                            currency: 'IDR',
+                                            minimumFractionDigits: 0,
+                                        },
+                                    )}
                                 </TableCell>
                                 <TableCell className="text-right text-white">
-                                    {item.subtotal.toLocaleString('id-ID', {
-                                        style: 'currency',
-                                        currency: 'IDR',
-                                        minimumFractionDigits: 0,
-                                    })}
+                                    {Number(item.subtotal).toLocaleString(
+                                        'id-ID',
+                                        {
+                                            style: 'currency',
+                                            currency: 'IDR',
+                                            minimumFractionDigits: 0,
+                                        },
+                                    )}
                                 </TableCell>
                                 <TableCell className="text-center">
                                     <Badge
@@ -143,7 +149,7 @@ export default function SaleItemsDisplay({
                         <div className="flex justify-between text-zinc-300">
                             <span>Subtotal:</span>
                             <span className="font-medium text-white">
-                                {subtotal.toLocaleString('id-ID', {
+                                {Number(subtotal).toLocaleString('id-ID', {
                                     style: 'currency',
                                     currency: 'IDR',
                                     minimumFractionDigits: 0,
@@ -154,7 +160,7 @@ export default function SaleItemsDisplay({
                             <div className="flex justify-between text-zinc-300">
                                 <span>Tax:</span>
                                 <span className="font-medium text-white">
-                                    {tax.toLocaleString('id-ID', {
+                                    {Number(tax).toLocaleString('id-ID', {
                                         style: 'currency',
                                         currency: 'IDR',
                                         minimumFractionDigits: 0,
@@ -167,7 +173,7 @@ export default function SaleItemsDisplay({
                                 <span>Discount:</span>
                                 <span className="font-medium text-white">
                                     -
-                                    {discount.toLocaleString('id-ID', {
+                                    {Number(discount).toLocaleString('id-ID', {
                                         style: 'currency',
                                         currency: 'IDR',
                                         minimumFractionDigits: 0,
@@ -178,7 +184,7 @@ export default function SaleItemsDisplay({
                         <div className="flex justify-between border-t border-zinc-700 pt-2 text-lg font-semibold">
                             <span className="text-white">Total:</span>
                             <span className="text-amber-500">
-                                {total.toLocaleString('id-ID', {
+                                {Number(total).toLocaleString('id-ID', {
                                     style: 'currency',
                                     currency: 'IDR',
                                     minimumFractionDigits: 0,

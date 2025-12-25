@@ -63,21 +63,40 @@ class SupplierController extends Controller
             'address' => 'nullable|string',
         ]);
 
-        Supplier::create($validated);
+        $supplierData = [
+            'code' => $validated['code'],
+            'name' => $validated['name'],
+        ];
+
+        if (!empty($validated['phone'])) {
+            $supplierData['phone'] = $validated['phone'];
+        }
+        if (!empty($validated['email'])) {
+            $supplierData['email'] = $validated['email'];
+        }
+        if (!empty($validated['address'])) {
+            $supplierData['address'] = $validated['address'];
+        }
+
+        Supplier::create($supplierData);
 
         return redirect()->route('suppliers.index')
             ->with('success', 'Supplier created successfully.');
     }
 
-    public function edit(Supplier $supplier)
+    public function edit($id)
     {
+        $supplier = Supplier::withTrashed()->findOrFail($id);
+
         return Inertia::render('suppliers/edit', [
             'supplier' => $supplier,
         ]);
     }
 
-    public function update(Request $request, Supplier $supplier)
+    public function update(Request $request, $id)
     {
+        $supplier = Supplier::withTrashed()->findOrFail($id);
+
         $validated = $request->validate([
             'code' => 'required|string|max:50|unique:suppliers,code,' . $supplier->id,
             'name' => 'required|string|max:255',
@@ -86,7 +105,22 @@ class SupplierController extends Controller
             'address' => 'nullable|string',
         ]);
 
-        $supplier->update($validated);
+        $supplierData = [
+            'code' => $validated['code'],
+            'name' => $validated['name'],
+        ];
+
+        if (!empty($validated['phone'])) {
+            $supplierData['phone'] = $validated['phone'];
+        }
+        if (!empty($validated['email'])) {
+            $supplierData['email'] = $validated['email'];
+        }
+        if (!empty($validated['address'])) {
+            $supplierData['address'] = $validated['address'];
+        }
+
+        $supplier->update($supplierData);
 
         return redirect()->route('suppliers.index')
             ->with('success', 'Supplier updated successfully.');

@@ -15,6 +15,8 @@ import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import {
     ArrowLeftRight,
+    ClipboardList,
+    FileSpreadsheet,
     History,
     LayoutGrid,
     Package,
@@ -23,6 +25,7 @@ import {
     ShoppingCart,
     UserCog,
     Users,
+    UsersRound,
     Warehouse,
 } from 'lucide-react';
 import AppLogo from './app-logo';
@@ -76,14 +79,6 @@ export function AppSidebar() {
         });
     }
 
-    if (hasPermission('manage_sales_persons')) {
-        mainNavItems.push({
-            title: 'Sales Persons',
-            href: '/sales-persons',
-            icon: UserCog,
-        });
-    }
-
     if (hasPermission('view_purchase') || hasPermission('create_purchase')) {
         mainNavItems.push({
             title: 'Purchases',
@@ -97,6 +92,14 @@ export function AppSidebar() {
             title: 'Sales',
             href: '/sales',
             icon: ShoppingBag,
+        });
+    }
+
+    if (hasPermission('manage_sales_persons')) {
+        mainNavItems.push({
+            title: 'Sales Persons',
+            href: '/sales-persons',
+            icon: UserCog,
         });
     }
 
@@ -121,6 +124,30 @@ export function AppSidebar() {
             title: 'Item History',
             href: '/item-history',
             icon: History,
+        });
+    }
+
+    if (hasPermission('manage_users')) {
+        mainNavItems.push({
+            title: 'User Management',
+            href: '/users',
+            icon: UsersRound,
+        });
+    }
+
+    if (hasPermission('view_reports')) {
+        mainNavItems.push({
+            title: 'Sales Report',
+            href: '/reports/sales',
+            icon: FileSpreadsheet,
+        });
+    }
+
+    if (hasPermission('view_reports')) {
+        mainNavItems.push({
+            title: 'Stock Report',
+            href: '/reports/stock',
+            icon: ClipboardList,
         });
     }
 

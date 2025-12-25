@@ -64,8 +64,10 @@ export default function Index({ adjustments, warehouses, filters }: Props) {
     const [search, setSearch] = useState(filters.search || '');
     const [fromDate, setFromDate] = useState(filters.from_date || '');
     const [toDate, setToDate] = useState(filters.to_date || '');
-    const [type, setType] = useState(filters.type || '');
-    const [warehouseId, setWarehouseId] = useState(filters.warehouse_id || '');
+    const [type, setType] = useState(filters.type || 'all');
+    const [warehouseId, setWarehouseId] = useState(
+        filters.warehouse_id || 'all',
+    );
 
     const handleFilter = () => {
         router.get(
@@ -74,8 +76,8 @@ export default function Index({ adjustments, warehouses, filters }: Props) {
                 search,
                 from_date: fromDate || undefined,
                 to_date: toDate || undefined,
-                type: type || undefined,
-                warehouse_id: warehouseId || undefined,
+                type: type !== 'all' ? type : undefined,
+                warehouse_id: warehouseId !== 'all' ? warehouseId : undefined,
             },
             { preserveState: true },
         );
@@ -154,7 +156,7 @@ export default function Index({ adjustments, warehouses, filters }: Props) {
                             <SelectValue placeholder="All Types" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="">All Types</SelectItem>
+                            <SelectItem value="all">All Types</SelectItem>
                             <SelectItem value="add">Add</SelectItem>
                             <SelectItem value="subtract">Subtract</SelectItem>
                         </SelectContent>
@@ -164,7 +166,7 @@ export default function Index({ adjustments, warehouses, filters }: Props) {
                             <SelectValue placeholder="All Warehouses" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="">All Warehouses</SelectItem>
+                            <SelectItem value="all">All Warehouses</SelectItem>
                             {warehouses.map((warehouse) => (
                                 <SelectItem
                                     key={warehouse.id}

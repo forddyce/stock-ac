@@ -43,7 +43,7 @@ interface Purchase {
         notes: string;
         item: {
             id: number;
-            sku: string;
+            code: string;
             name: string;
             unit: string;
         };

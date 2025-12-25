@@ -40,11 +40,15 @@ class SaleController extends Controller
         }
 
         if ($status = $request->input('status')) {
-            $query->where('status', $status);
+            if ($status !== 'all') {
+                $query->where('status', $status);
+            }
         }
 
         if ($customerId = $request->input('customer_id')) {
-            $query->where('customer_id', $customerId);
+            if ($customerId !== 'all') {
+                $query->where('customer_id', $customerId);
+            }
         }
 
         $sortBy = $request->input('sort_by', 'sale_date');
@@ -66,7 +70,7 @@ class SaleController extends Controller
         $warehouses = Warehouse::active()->get(['id', 'code', 'name']);
         $customers = Customer::active()->get(['id', 'code', 'name']);
         $salesPersons = SalesPerson::active()->get(['id', 'code', 'name']);
-        $items = Item::active()->get(['id', 'sku', 'name', 'unit']);
+        $items = Item::active()->get(['id', 'code', 'name', 'unit']);
 
         return Inertia::render('sales/create', [
             'warehouses' => $warehouses,
@@ -144,7 +148,7 @@ class SaleController extends Controller
         $warehouses = Warehouse::active()->get(['id', 'code', 'name']);
         $customers = Customer::active()->get(['id', 'code', 'name']);
         $salesPersons = SalesPerson::active()->get(['id', 'code', 'name']);
-        $items = Item::active()->get(['id', 'sku', 'name', 'unit']);
+        $items = Item::active()->get(['id', 'code', 'name', 'unit']);
 
         return Inertia::render('sales/edit', [
             'sale' => $sale,
@@ -183,20 +187,22 @@ class SaleController extends Controller
                     ])->first();
 
                     if ($warehouseItem) {
-                        $warehouseItem->increment('qty', $oldItem->qty_fulfilled);
-                    }
+                        $qtyBefore = $warehouseItem->stock;
+                        $warehouseItem->increment('stock', $oldItem->qty_fulfilled);
 
-                    ItemHistory::create([
-                        'item_id' => $oldItem->item_id,
-                        'warehouse_id' => $sale->warehouse_id,
-                        'type' => 'sale_reversal',
-                        'reference_type' => Sale::class,
-                        'reference_id' => $sale->id,
-                        'qty' => $oldItem->qty_fulfilled,
-                        'balance' => $warehouseItem ? $warehouseItem->qty : 0,
-                        'notes' => "Sale {$sale->invoice_no} updated",
-                        'created_by' => Auth::id(),
-                    ]);
+                        ItemHistory::create([
+                            'batch_id' => 'SALE-REV-' . $sale->id . '-' . now()->format('YmdHis'),
+                            'item_id' => $oldItem->item_id,
+                            'warehouse_id' => $sale->warehouse_id,
+                            'transaction_type' => 'adjustment',
+                            'reference_id' => $sale->id,
+                            'qty_before' => $qtyBefore,
+                            'qty_change' => $oldItem->qty_fulfilled,
+                            'qty_after' => $warehouseItem->stock,
+                            'notes' => "Sale {$sale->invoice_no} updated",
+                            'user_id' => Auth::id(),
+                        ]);
+                    }
                 }
             }
 
@@ -243,20 +249,22 @@ class SaleController extends Controller
                     ])->first();
 
                     if ($warehouseItem) {
-                        $warehouseItem->increment('qty', $item->qty_fulfilled);
-                    }
+                        $qtyBefore = $warehouseItem->stock;
+                        $warehouseItem->increment('stock', $item->qty_fulfilled);
 
-                    ItemHistory::create([
-                        'item_id' => $item->item_id,
-                        'warehouse_id' => $sale->warehouse_id,
-                        'type' => 'sale_reversal',
-                        'reference_type' => Sale::class,
-                        'reference_id' => $sale->id,
-                        'qty' => $item->qty_fulfilled,
-                        'balance' => $warehouseItem ? $warehouseItem->qty : 0,
-                        'notes' => "Sale {$sale->invoice_no} deleted",
-                        'created_by' => Auth::id(),
-                    ]);
+                        ItemHistory::create([
+                            'batch_id' => 'SALE-DEL-' . $sale->id . '-' . now()->format('YmdHis'),
+                            'item_id' => $item->item_id,
+                            'warehouse_id' => $sale->warehouse_id,
+                            'transaction_type' => 'adjustment',
+                            'reference_id' => $sale->id,
+                            'qty_before' => $qtyBefore,
+                            'qty_change' => $item->qty_fulfilled,
+                            'qty_after' => $warehouseItem->stock,
+                            'notes' => "Sale {$sale->invoice_no} deleted",
+                            'user_id' => Auth::id(),
+                        ]);
+                    }
                 }
             }
 
@@ -300,27 +308,28 @@ class SaleController extends Controller
                         throw new \Exception("Cannot fulfill more than ordered quantity for item");
                     }
 
-                    $warehouseItem = WarehouseItem::where([
-                        'warehouse_id' => $sale->warehouse_id,
-                        'item_id' => $saleItem->item_id,
-                    ])->first();
+                    $warehouseItem = WarehouseItem::firstOrCreate(
+                        [
+                            'warehouse_id' => $sale->warehouse_id,
+                            'item_id' => $saleItem->item_id,
+                        ],
+                        ['stock' => 0]
+                    );
 
-                    if (!$warehouseItem || $warehouseItem->qty < $qtyToFulfill) {
-                        throw new \Exception("Insufficient stock for item");
-                    }
-
-                    $warehouseItem->decrement('qty', $qtyToFulfill);
+                    $qtyBefore = $warehouseItem->stock;
+                    $warehouseItem->decrement('stock', $qtyToFulfill);
 
                     ItemHistory::create([
+                        'batch_id' => 'SALE-FUL-' . $sale->id . '-' . now()->format('YmdHis'),
                         'item_id' => $saleItem->item_id,
                         'warehouse_id' => $sale->warehouse_id,
-                        'type' => 'sale_fulfill',
-                        'reference_type' => Sale::class,
+                        'transaction_type' => 'sale',
                         'reference_id' => $sale->id,
-                        'qty' => -$qtyToFulfill,
-                        'balance' => $warehouseItem->qty,
+                        'qty_before' => $qtyBefore,
+                        'qty_change' => -$qtyToFulfill,
+                        'qty_after' => $warehouseItem->stock,
                         'notes' => "Fulfilled for sale {$sale->invoice_no}" . ($itemData['notes'] ? ": {$itemData['notes']}" : ''),
-                        'created_by' => Auth::id(),
+                        'user_id' => Auth::id(),
                     ]);
 
                     $saleItem->update([

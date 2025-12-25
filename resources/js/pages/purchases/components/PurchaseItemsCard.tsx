@@ -1,20 +1,14 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Combobox } from '@/components/ui/combobox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { Plus, Trash2 } from 'lucide-react';
 
 interface Item {
     id: number;
     name: string;
-    sku: string;
+    code: string;
 }
 
 interface PurchaseItem {
@@ -88,26 +82,19 @@ export default function PurchaseItemsCard({
                                 <Label className="text-xs text-zinc-200">
                                     Item *
                                 </Label>
-                                <Select
+                                <Combobox
                                     value={item.item_id}
                                     onValueChange={(value) =>
                                         onItemChange(index, 'item_id', value)
                                     }
-                                >
-                                    <SelectTrigger className="border-zinc-700 bg-zinc-900 text-white">
-                                        <SelectValue placeholder="Select item" />
-                                    </SelectTrigger>
-                                    <SelectContent className="border-zinc-700 bg-zinc-900">
-                                        {items.map((itm) => (
-                                            <SelectItem
-                                                key={itm.id}
-                                                value={itm.id.toString()}
-                                            >
-                                                {itm.sku} - {itm.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                    options={items.map((itm) => ({
+                                        value: itm.id.toString(),
+                                        label: `${itm.code} - ${itm.name}`,
+                                    }))}
+                                    placeholder="Select item"
+                                    searchPlaceholder="Search items..."
+                                    emptyText="No items found."
+                                />
                                 {errors[`items.${index}.item_id`] && (
                                     <p className="mt-1 text-xs text-red-500">
                                         {errors[`items.${index}.item_id`]}
@@ -180,7 +167,7 @@ export default function PurchaseItemsCard({
                                 </div>
                             </div>
 
-                            <div className="flex items-end md:col-span-1">
+                            <div className="flex items-start pt-6 md:col-span-1">
                                 <Button
                                     type="button"
                                     variant="ghost"
@@ -196,7 +183,6 @@ export default function PurchaseItemsCard({
                     ))}
                 </div>
 
-                {/* Summary */}
                 <div className="mt-6 border-t border-zinc-700 pt-4">
                     <div className="ml-auto flex max-w-sm flex-col gap-3">
                         <div className="flex justify-between text-zinc-300">

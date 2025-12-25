@@ -18,7 +18,7 @@ interface Warehouse {
 interface Item {
     id: number;
     name: string;
-    sku: string;
+    code: string;
 }
 
 interface PurchaseItem {

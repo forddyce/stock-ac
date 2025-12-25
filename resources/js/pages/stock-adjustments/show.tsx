@@ -34,7 +34,7 @@ interface StockAdjustment {
         qty: number;
         item: {
             id: number;
-            sku: string;
+            code: string;
             name: string;
             unit: string;
         };
@@ -205,7 +205,7 @@ export default function Show({ adjustment }: Props) {
                                                         {item.item.name}
                                                     </p>
                                                     <p className="text-sm text-zinc-400">
-                                                        {item.item.sku} •{' '}
+                                                        {item.item.code} •{' '}
                                                         {item.item.unit}
                                                     </p>
                                                 </div>

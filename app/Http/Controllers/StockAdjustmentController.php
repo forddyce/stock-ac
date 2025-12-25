@@ -22,9 +22,8 @@ class StockAdjustmentController extends Controller
     public function index(Request $request)
     {
         $query = StockAdjustment::with(['warehouse', 'item', 'creator'])
-            ->select('*')
-            ->selectRaw('adjustment_no, warehouse_id, adjustment_date, type, MAX(created_at) as latest_created')
-            ->groupBy('adjustment_no', 'warehouse_id', 'adjustment_date', 'type', 'id', 'item_id', 'qty', 'reason', 'idempotency_key', 'processed_at', 'created_by', 'created_at', 'updated_at');
+            ->selectRaw('adjustment_no, warehouse_id, adjustment_date, type, reason, MAX(created_at) as latest_created')
+            ->groupBy('adjustment_no', 'warehouse_id', 'adjustment_date', 'type', 'reason');
 
         if ($search = $request->input('search')) {
             $query->where('adjustment_no', 'like', "%{$search}%");
@@ -87,7 +86,7 @@ class StockAdjustmentController extends Controller
     public function create()
     {
         $warehouses = Warehouse::active()->get(['id', 'code', 'name']);
-        $items = Item::active()->get(['id', 'sku', 'name', 'unit']);
+        $items = Item::active()->get(['id', 'code', 'name', 'unit']);
 
         return Inertia::render('stock-adjustments/create', [
             'warehouses' => $warehouses,
@@ -129,25 +128,28 @@ class StockAdjustmentController extends Controller
                         'warehouse_id' => $validated['warehouse_id'],
                         'item_id' => $item['item_id'],
                     ],
-                    ['qty' => 0]
+                    ['stock' => 0]
                 );
 
+                $qtyBefore = $warehouseItem->stock;
+
                 if ($validated['type'] === 'add') {
-                    $warehouseItem->increment('qty', $item['qty']);
+                    $warehouseItem->increment('stock', $item['qty']);
                 } else {
-                    $warehouseItem->decrement('qty', $item['qty']);
+                    $warehouseItem->decrement('stock', $item['qty']);
                 }
 
                 ItemHistory::create([
+                    'batch_id' => $adjustmentNo,
                     'item_id' => $item['item_id'],
                     'warehouse_id' => $validated['warehouse_id'],
-                    'type' => 'adjustment',
-                    'reference_type' => StockAdjustment::class,
+                    'transaction_type' => 'adjustment',
                     'reference_id' => $adjustment->id,
-                    'qty' => $validated['type'] === 'add' ? $item['qty'] : -$item['qty'],
-                    'balance' => $warehouseItem->qty,
+                    'qty_before' => $qtyBefore,
+                    'qty_change' => $validated['type'] === 'add' ? $item['qty'] : -$item['qty'],
+                    'qty_after' => $warehouseItem->stock,
                     'notes' => "Stock adjustment ({$adjustmentNo}): {$validated['reason']}",
-                    'created_by' => Auth::id(),
+                    'user_id' => Auth::id(),
                 ]);
             }
         });

@@ -110,7 +110,7 @@ export default function ItemHistoryFilter({
                                 <SelectValue placeholder="Semua Jenis" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="">Semua Jenis</SelectItem>
+                                <SelectItem value="all">Semua Jenis</SelectItem>
                                 {transactionTypes.map((type) => (
                                     <SelectItem
                                         key={type.value}
@@ -134,7 +134,7 @@ export default function ItemHistoryFilter({
                                 <SelectValue placeholder="Semua Item" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="">Semua Item</SelectItem>
+                                <SelectItem value="all">Semua Item</SelectItem>
                                 {items.map((item) => (
                                     <SelectItem
                                         key={item.id}
@@ -159,7 +159,9 @@ export default function ItemHistoryFilter({
                                 <SelectValue placeholder="Semua Gudang" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="">Semua Gudang</SelectItem>
+                                <SelectItem value="all">
+                                    Semua Gudang
+                                </SelectItem>
                                 {warehouses.map((warehouse) => (
                                     <SelectItem
                                         key={warehouse.id}

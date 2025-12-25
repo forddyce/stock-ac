@@ -24,9 +24,8 @@ class TransferController extends Controller
     public function index(Request $request)
     {
         $query = Transfer::with(['fromWarehouse', 'toWarehouse', 'item', 'creator'])
-            ->select('*')
             ->selectRaw('transfer_no, from_warehouse_id, to_warehouse_id, transfer_date, status, MAX(created_at) as latest_created')
-            ->groupBy('transfer_no', 'from_warehouse_id', 'to_warehouse_id', 'transfer_date', 'status', 'id', 'item_id', 'qty_requested', 'qty_sent', 'qty_received', 'notes', 'idempotency_key', 'processed_at', 'created_by', 'created_at', 'updated_at');
+            ->groupBy('transfer_no', 'from_warehouse_id', 'to_warehouse_id', 'transfer_date', 'status');
 
         if ($search = $request->input('search')) {
             $query->where('transfer_no', 'like', "%{$search}%");
@@ -93,7 +92,7 @@ class TransferController extends Controller
     public function create()
     {
         $warehouses = Warehouse::active()->get(['id', 'code', 'name']);
-        $items = Item::active()->get(['id', 'sku', 'name', 'unit']);
+        $items = Item::active()->get(['id', 'code', 'name', 'unit']);
 
         return Inertia::render('transfers/create', [
             'warehouses' => $warehouses,
@@ -203,7 +202,7 @@ class TransferController extends Controller
         ];
 
         $warehouses = Warehouse::active()->get(['id', 'code', 'name']);
-        $items = Item::active()->get(['id', 'sku', 'name', 'unit']);
+        $items = Item::active()->get(['id', 'code', 'name', 'unit']);
 
         return Inertia::render('transfers/edit', [
             'transfer' => $transferData,
@@ -239,20 +238,22 @@ class TransferController extends Controller
                     ])->first();
 
                     if ($fromWarehouseItem) {
-                        $fromWarehouseItem->increment('qty', $transfer->qty_sent);
-                    }
+                        $qtyBefore = $fromWarehouseItem->stock;
+                        $fromWarehouseItem->increment('stock', $transfer->qty_sent);
 
-                    ItemHistory::create([
-                        'item_id' => $transfer->item_id,
-                        'warehouse_id' => $transfer->from_warehouse_id,
-                        'type' => 'transfer_reversal',
-                        'reference_type' => Transfer::class,
-                        'reference_id' => $transfer->id,
-                        'qty' => $transfer->qty_sent,
-                        'balance' => $fromWarehouseItem ? $fromWarehouseItem->qty : 0,
-                        'notes' => "Transfer {$transferNo} updated",
-                        'created_by' => Auth::id(),
-                    ]);
+                        ItemHistory::create([
+                            'batch_id' => 'TRF-REV-' . $transferNo . '-' . now()->format('YmdHis'),
+                            'item_id' => $transfer->item_id,
+                            'warehouse_id' => $transfer->from_warehouse_id,
+                            'transaction_type' => 'adjustment',
+                            'reference_id' => $transfer->id,
+                            'qty_before' => $qtyBefore,
+                            'qty_change' => $transfer->qty_sent,
+                            'qty_after' => $fromWarehouseItem->stock,
+                            'notes' => "Transfer {$transferNo} updated",
+                            'user_id' => Auth::id(),
+                        ]);
+                    }
                 }
             }
 
@@ -296,20 +297,22 @@ class TransferController extends Controller
                     ])->first();
 
                     if ($fromWarehouseItem) {
-                        $fromWarehouseItem->increment('qty', $transfer->qty_sent);
-                    }
+                        $qtyBefore = $fromWarehouseItem->stock;
+                        $fromWarehouseItem->increment('stock', $transfer->qty_sent);
 
-                    ItemHistory::create([
-                        'item_id' => $transfer->item_id,
-                        'warehouse_id' => $transfer->from_warehouse_id,
-                        'type' => 'transfer_reversal',
-                        'reference_type' => Transfer::class,
-                        'reference_id' => $transfer->id,
-                        'qty' => $transfer->qty_sent,
-                        'balance' => $fromWarehouseItem ? $fromWarehouseItem->qty : 0,
-                        'notes' => "Transfer {$transferNo} deleted",
-                        'created_by' => Auth::id(),
-                    ]);
+                        ItemHistory::create([
+                            'batch_id' => 'TRF-DEL-' . $transferNo . '-' . now()->format('YmdHis'),
+                            'item_id' => $transfer->item_id,
+                            'warehouse_id' => $transfer->from_warehouse_id,
+                            'transaction_type' => 'adjustment',
+                            'reference_id' => $transfer->id,
+                            'qty_before' => $qtyBefore,
+                            'qty_change' => $transfer->qty_sent,
+                            'qty_after' => $fromWarehouseItem->stock,
+                            'notes' => "Transfer {$transferNo} deleted",
+                            'user_id' => Auth::id(),
+                        ]);
+                    }
                 }
 
                 if ($transfer->qty_received > 0) {
@@ -319,20 +322,22 @@ class TransferController extends Controller
                     ])->first();
 
                     if ($toWarehouseItem) {
-                        $toWarehouseItem->decrement('qty', $transfer->qty_received);
-                    }
+                        $qtyBefore = $toWarehouseItem->stock;
+                        $toWarehouseItem->decrement('stock', $transfer->qty_received);
 
-                    ItemHistory::create([
-                        'item_id' => $transfer->item_id,
-                        'warehouse_id' => $transfer->to_warehouse_id,
-                        'type' => 'transfer_reversal',
-                        'reference_type' => Transfer::class,
-                        'reference_id' => $transfer->id,
-                        'qty' => -$transfer->qty_received,
-                        'balance' => $toWarehouseItem ? $toWarehouseItem->qty : 0,
-                        'notes' => "Transfer {$transferNo} deleted",
-                        'created_by' => Auth::id(),
-                    ]);
+                        ItemHistory::create([
+                            'batch_id' => 'TRF-DEL-' . $transferNo . '-' . now()->format('YmdHis'),
+                            'item_id' => $transfer->item_id,
+                            'warehouse_id' => $transfer->to_warehouse_id,
+                            'transaction_type' => 'adjustment',
+                            'reference_id' => $transfer->id,
+                            'qty_before' => $qtyBefore,
+                            'qty_change' => -$transfer->qty_received,
+                            'qty_after' => $toWarehouseItem->stock,
+                            'notes' => "Transfer {$transferNo} deleted",
+                            'user_id' => Auth::id(),
+                        ]);
+                    }
                 }
             }
 
@@ -406,22 +411,24 @@ class TransferController extends Controller
                         'item_id' => $transfer->item_id,
                     ])->first();
 
-                    if (!$fromWarehouseItem || $fromWarehouseItem->qty < $qtyToTransfer) {
+                    if (!$fromWarehouseItem || $fromWarehouseItem->stock < $qtyToTransfer) {
                         throw new \Exception("Insufficient stock in source warehouse");
                     }
 
-                    $fromWarehouseItem->decrement('qty', $qtyToTransfer);
+                    $fromQtyBefore = $fromWarehouseItem->stock;
+                    $fromWarehouseItem->decrement('stock', $qtyToTransfer);
 
                     ItemHistory::create([
+                        'batch_id' => 'TRF-OUT-' . $transferNo . '-' . now()->format('YmdHis'),
                         'item_id' => $transfer->item_id,
                         'warehouse_id' => $transfer->from_warehouse_id,
-                        'type' => 'transfer_out',
-                        'reference_type' => Transfer::class,
+                        'transaction_type' => 'transfer_out',
                         'reference_id' => $transfer->id,
-                        'qty' => -$qtyToTransfer,
-                        'balance' => $fromWarehouseItem->qty,
+                        'qty_before' => $fromQtyBefore,
+                        'qty_change' => -$qtyToTransfer,
+                        'qty_after' => $fromWarehouseItem->stock,
                         'notes' => "Transfer out to {$transfer->toWarehouse->name} ({$transferNo})" . ($itemData['notes'] ? ": {$itemData['notes']}" : ''),
-                        'created_by' => Auth::id(),
+                        'user_id' => Auth::id(),
                     ]);
 
                     $toWarehouseItem = WarehouseItem::firstOrCreate(
@@ -429,21 +436,23 @@ class TransferController extends Controller
                             'warehouse_id' => $transfer->to_warehouse_id,
                             'item_id' => $transfer->item_id,
                         ],
-                        ['qty' => 0]
+                        ['stock' => 0]
                     );
 
-                    $toWarehouseItem->increment('qty', $qtyToTransfer);
+                    $toQtyBefore = $toWarehouseItem->stock;
+                    $toWarehouseItem->increment('stock', $qtyToTransfer);
 
                     ItemHistory::create([
+                        'batch_id' => 'TRF-IN-' . $transferNo . '-' . now()->format('YmdHis'),
                         'item_id' => $transfer->item_id,
                         'warehouse_id' => $transfer->to_warehouse_id,
-                        'type' => 'transfer_in',
-                        'reference_type' => Transfer::class,
+                        'transaction_type' => 'transfer_in',
                         'reference_id' => $transfer->id,
-                        'qty' => $qtyToTransfer,
-                        'balance' => $toWarehouseItem->qty,
+                        'qty_before' => $toQtyBefore,
+                        'qty_change' => $qtyToTransfer,
+                        'qty_after' => $toWarehouseItem->stock,
                         'notes' => "Transfer in from {$transfer->fromWarehouse->name} ({$transferNo})" . ($itemData['notes'] ? ": {$itemData['notes']}" : ''),
-                        'created_by' => Auth::id(),
+                        'user_id' => Auth::id(),
                     ]);
 
                     $transfer->update([

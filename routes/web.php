@@ -3,6 +3,7 @@
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ItemController;
+use App\Http\Controllers\ItemHistoryController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SaleController;
@@ -25,39 +26,32 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])
         ->name('dashboard');
 
-    // Warehouses - Admin only
     Route::resource('warehouses', WarehouseController::class);
     Route::post('warehouses/{id}/restore', [WarehouseController::class, 'restore'])
         ->name('warehouses.restore');
 
-    // Items - Admin only
     Route::resource('items', ItemController::class);
     Route::post('items/{id}/restore', [ItemController::class, 'restore'])
         ->name('items.restore');
 
-    // Customers - Admin only
     Route::resource('customers', CustomerController::class);
     Route::post('customers/{id}/restore', [CustomerController::class, 'restore'])
         ->name('customers.restore');
 
-    // Suppliers - Admin only
     Route::resource('suppliers', SupplierController::class);
     Route::post('suppliers/{id}/restore', [SupplierController::class, 'restore'])
         ->name('suppliers.restore');
 
-    // Sales Persons - Admin only
     Route::resource('sales-persons', SalesPersonController::class);
     Route::post('sales-persons/{id}/restore', [SalesPersonController::class, 'restore'])
         ->name('sales-persons.restore');
 
-    // Purchases - Admin only
     Route::resource('purchases', PurchaseController::class);
     Route::get('purchases/{purchase}/receive', [PurchaseController::class, 'receive'])
         ->name('purchases.receive');
     Route::post('purchases/{purchase}/receive', [PurchaseController::class, 'processReceive'])
         ->name('purchases.process-receive');
 
-    // Sales - Admin only
     Route::resource('sales', SaleController::class);
     Route::get('sales/{sale}/fulfill', [SaleController::class, 'fulfill'])
         ->name('sales.fulfill');
@@ -66,7 +60,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('sales/{sale}/print', [SaleController::class, 'print'])
         ->name('sales.print');
 
-    // Transfers
     Route::get('transfers', [TransferController::class, 'index'])
         ->name('transfers.index');
     Route::get('transfers/create', [TransferController::class, 'create'])
@@ -86,7 +79,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('transfers/{transferNo}/process', [TransferController::class, 'processTransfer'])
         ->name('transfers.process-transfer');
 
-    // Stock Adjustments - Admin only
     Route::get('stock-adjustments', [StockAdjustmentController::class, 'index'])
         ->name('stock-adjustments.index');
     Route::get('stock-adjustments/create', [StockAdjustmentController::class, 'create'])
@@ -96,15 +88,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('stock-adjustments/{adjustmentNo}', [StockAdjustmentController::class, 'show'])
         ->name('stock-adjustments.show');
 
-    // Reports
+    Route::get('item-history', [ItemHistoryController::class, 'index'])
+        ->name('item-history.index');
+    Route::get('item-history/{id}', [ItemHistoryController::class, 'show'])
+        ->name('item-history.show');
+
     Route::get('reports/sales', [ReportController::class, 'salesReport'])
         ->name('reports.sales');
     Route::get('reports/sales/export', [ReportController::class, 'exportSales'])
         ->name('reports.sales.export');
+    Route::get('reports/stock', [ReportController::class, 'stockReport'])
+        ->name('reports.stock');
     Route::get('reports/item-history', [ReportController::class, 'itemHistory'])
         ->name('reports.item-history');
 
-    // Users - Admin only
     Route::resource('users', UserController::class);
 });
 

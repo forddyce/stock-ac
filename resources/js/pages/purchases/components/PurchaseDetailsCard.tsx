@@ -135,7 +135,7 @@ export default function PurchaseDetailsCard({
 
                     <div>
                         <Label htmlFor="invoice_no" className="text-zinc-200">
-                            Invoice Number
+                            Invoice Number *
                         </Label>
                         <Input
                             id="invoice_no"
@@ -145,6 +145,7 @@ export default function PurchaseDetailsCard({
                             }
                             className="border-zinc-700 bg-zinc-900 text-white"
                             placeholder="INV-001"
+                            required
                         />
                         {errors.invoice_no && (
                             <p className="mt-1 text-sm text-red-500">
