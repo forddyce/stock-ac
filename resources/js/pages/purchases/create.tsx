@@ -32,14 +32,20 @@ interface Props {
     suppliers: Supplier[];
     warehouses: Warehouse[];
     items: Item[];
+    nextInvoiceNo: string;
 }
 
-export default function Create({ suppliers, warehouses, items }: Props) {
+export default function Create({
+    suppliers,
+    warehouses,
+    items,
+    nextInvoiceNo,
+}: Props) {
     const [formData, setFormData] = useState({
         supplier_id: '',
         warehouse_id: '',
         purchase_date: new Date().toISOString().split('T')[0],
-        invoice_no: '',
+        invoice_no: nextInvoiceNo,
         notes: '',
     });
 

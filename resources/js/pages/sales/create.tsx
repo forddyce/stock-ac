@@ -8,6 +8,7 @@ import SaleItemsCard from './components/SaleItemsCard';
 interface Customer {
     id: number;
     name: string;
+    code: string;
 }
 
 interface Warehouse {
@@ -38,6 +39,7 @@ interface Props {
     warehouses: Warehouse[];
     salesPersons: SalesPerson[];
     items: Item[];
+    nextInvoiceNo: string;
 }
 
 export default function Create({
@@ -45,13 +47,14 @@ export default function Create({
     warehouses,
     salesPersons,
     items,
+    nextInvoiceNo,
 }: Props) {
     const [formData, setFormData] = useState({
         customer_id: '',
         warehouse_id: '',
         sales_person_id: '',
         sale_date: new Date().toISOString().split('T')[0],
-        invoice_no: '',
+        invoice_no: nextInvoiceNo,
         notes: '',
     });
 

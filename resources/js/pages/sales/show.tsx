@@ -85,8 +85,8 @@ export default function Show({ sale }: Props) {
         setConfirmOpen(false);
     };
 
-    const handlePrintInvoice = () => {
-        console.log('Print invoice for sale:', sale.id);
+    const handlePrintInvoice = (id: number) => {
+        window.open(`/sales/${id}/print`, '_blank');
     };
 
     return (
@@ -127,7 +127,7 @@ export default function Show({ sale }: Props) {
                         <Button
                             size="sm"
                             variant="outline"
-                            onClick={handlePrintInvoice}
+                            onClick={() => handlePrintInvoice(sale.id)}
                             className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
                         >
                             <FileText className="mr-1 h-4 w-4" />

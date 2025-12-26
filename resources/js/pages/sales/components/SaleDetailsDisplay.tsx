@@ -27,7 +27,7 @@ interface SaleDetailsDisplayProps {
     warehouse: Warehouse;
     salesPerson?: SalesPerson;
     saleDate: string;
-    creator: Creator;
+    creator: Creator | null;
     notes?: string;
 }
 
@@ -82,12 +82,14 @@ export default function SaleDetailsDisplay({
                             })}
                         </p>
                     </div>
-                    <div>
-                        <p className="text-sm text-zinc-400">Created By</p>
-                        <p className="mt-1 font-medium text-white">
-                            {creator.name}
-                        </p>
-                    </div>
+                    {creator && (
+                        <div>
+                            <p className="text-sm text-zinc-400">Created By</p>
+                            <p className="mt-1 font-medium text-white">
+                                {creator.name}
+                            </p>
+                        </div>
+                    )}
                     {notes && (
                         <div className="md:col-span-2">
                             <p className="text-sm text-zinc-400">Notes</p>

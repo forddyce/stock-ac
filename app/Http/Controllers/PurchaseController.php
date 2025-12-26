@@ -60,7 +60,30 @@ class PurchaseController extends Controller
             'warehouses' => $warehouses,
             'suppliers' => $suppliers,
             'items' => $items,
+            'nextInvoiceNo' => $this->generateNextInvoiceNo(),
         ]);
+    }
+
+    private function generateNextInvoiceNo()
+    {
+        $today = now();
+        $dateString = $today->format('d/m/Y');
+        $prefix = "/BELI/{$dateString}";
+
+        $lastPurchase = Purchase::where('invoice_no', 'like', "%{$prefix}")
+            ->orderBy('invoice_no', 'desc')
+            ->first();
+
+        $nextNumber = 1;
+        if ($lastPurchase) {
+            $parts = explode('/', $lastPurchase->invoice_no);
+            if (count($parts) > 0) {
+                $currentNumber = (int) $parts[0];
+                $nextNumber = $currentNumber + 1;
+            }
+        }
+
+        return sprintf('%04d', $nextNumber) . $prefix;
     }
 
     public function store(Request $request)
