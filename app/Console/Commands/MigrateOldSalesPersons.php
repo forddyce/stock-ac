@@ -41,7 +41,6 @@ class MigrateOldSalesPersons extends Command
 
         foreach ($oldSalesPersons as $oldSalesPerson) {
             try {
-                // Generate unique code
                 $baseCode = $this->generateCode($oldSalesPerson->name);
                 $code = $baseCode;
                 $counter = 1;
@@ -51,7 +50,6 @@ class MigrateOldSalesPersons extends Command
                     $counter++;
                 }
 
-                // Check if sales person already exists
                 $existingSalesPerson = SalesPerson::withTrashed()->where('name', $oldSalesPerson->name)->first();
                 
                 if ($existingSalesPerson) {
@@ -62,11 +60,9 @@ class MigrateOldSalesPersons extends Command
                     continue;
                 }
 
-                // Parse JSON info field
                 $info = json_decode($oldSalesPerson->info ?? '{}', true);
                 $phone = $info['phone'] ?? null;
 
-                // Create new sales person
                 SalesPerson::create([
                     'code' => $code,
                     'name' => $oldSalesPerson->name,

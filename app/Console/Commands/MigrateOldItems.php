@@ -30,7 +30,6 @@ class MigrateOldItems extends Command
     {
         $oldTableName = $this->option('table');
 
-        // Check if old table exists
         if (!DB::getSchemaBuilder()->hasTable($oldTableName)) {
             $this->error("Table '{$oldTableName}' does not exist!");
             return 1;
@@ -38,7 +37,6 @@ class MigrateOldItems extends Command
 
         $this->info("Starting migration from '{$oldTableName}' to 'items' table...");
 
-        // Get all records from old table
         $oldItems = DB::table($oldTableName)->get();
 
         if ($oldItems->isEmpty()) {
@@ -58,18 +56,15 @@ class MigrateOldItems extends Command
 
         foreach ($oldItems as $oldItem) {
             try {
-                // Generate a unique code from the item name
                 $baseCode = $this->generateCode($oldItem->name);
                 $code = $baseCode;
                 $counter = 1;
 
-                // Ensure code is unique
                 while (Item::withTrashed()->where('code', $code)->exists()) {
                     $code = $baseCode . '-' . $counter;
                     $counter++;
                 }
 
-                // Check if item with same name already exists
                 $existingItem = Item::withTrashed()->where('name', $oldItem->name)->first();
                 
                 if ($existingItem) {
@@ -80,7 +75,6 @@ class MigrateOldItems extends Command
                     continue;
                 }
 
-                // Create new item
                 Item::create([
                     'code' => $code,
                     'name' => $oldItem->name,
@@ -111,7 +105,6 @@ class MigrateOldItems extends Command
         $progressBar->finish();
         $this->newLine(2);
 
-        // Summary
         $this->info('=== Migration Summary ===');
         $this->info("Total items processed: {$oldItems->count()}");
         $this->info("Successfully migrated: {$successCount}");
@@ -143,27 +136,22 @@ class MigrateOldItems extends Command
      */
     private function generateCode(string $name): string
     {
-        // Extract alphanumeric characters and convert to uppercase
         $code = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $name));
         
-        // If code is too long, take first 20 characters
         if (strlen($code) > 20) {
             $code = substr($code, 0, 20);
         }
         
-        // If code is empty or too short, use first word + numbers
         if (strlen($code) < 3) {
             $words = explode(' ', $name);
             $firstWord = preg_replace('/[^A-Za-z0-9]/', '', $words[0]);
             $code = strtoupper(substr($firstWord, 0, 10));
             
-            // Add numbers if found in name
             preg_match_all('/\d+/', $name, $matches);
             if (!empty($matches[0])) {
                 $code .= implode('', $matches[0]);
             }
             
-            // If still too short, pad with X
             while (strlen($code) < 3) {
                 $code .= 'X';
             }

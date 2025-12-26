@@ -41,7 +41,6 @@ class MigrateOldSuppliers extends Command
 
         foreach ($oldSuppliers as $oldSupplier) {
             try {
-                // Generate unique code
                 $baseCode = $this->generateCode($oldSupplier->name);
                 $code = $baseCode;
                 $counter = 1;
@@ -51,7 +50,6 @@ class MigrateOldSuppliers extends Command
                     $counter++;
                 }
 
-                // Check if supplier already exists
                 $existingSupplier = Supplier::withTrashed()->where('name', $oldSupplier->name)->first();
                 
                 if ($existingSupplier) {
@@ -62,12 +60,10 @@ class MigrateOldSuppliers extends Command
                     continue;
                 }
 
-                // Parse JSON info field
                 $info = json_decode($oldSupplier->info ?? '{}', true);
                 $phone = $info['phone'] ?? null;
                 $address = $info['address'] ?? null;
 
-                // Create new supplier
                 Supplier::create([
                     'code' => $code,
                     'name' => $oldSupplier->name,

@@ -41,7 +41,6 @@ class MigrateOldCustomers extends Command
 
         foreach ($oldCustomers as $oldCustomer) {
             try {
-                // Generate unique code
                 $baseCode = $this->generateCode($oldCustomer->name);
                 $code = $baseCode;
                 $counter = 1;
@@ -51,7 +50,6 @@ class MigrateOldCustomers extends Command
                     $counter++;
                 }
 
-                // Check if customer already exists
                 $existingCustomer = Customer::withTrashed()->where('name', $oldCustomer->name)->first();
                 
                 if ($existingCustomer) {
@@ -62,18 +60,16 @@ class MigrateOldCustomers extends Command
                     continue;
                 }
 
-                // Parse JSON info field
                 $info = json_decode($oldCustomer->info ?? '{}', true);
                 $phone = $info['phone'] ?? null;
                 $address = $info['address'] ?? null;
 
-                // Create new customer
                 Customer::create([
                     'code' => $code,
                     'name' => $oldCustomer->name,
                     'address' => $address,
                     'phone' => $phone,
-                    'customer_type' => 'retail', // Default value
+                    'customer_type' => 'retail',
                     'notes' => $oldCustomer->notes,
                     'is_active' => (bool) $oldCustomer->is_active,
                     'created_at' => $oldCustomer->created_at ?? now(),

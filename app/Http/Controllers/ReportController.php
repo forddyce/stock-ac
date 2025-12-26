@@ -142,7 +142,6 @@ class ReportController extends Controller
 
         $warehouses = \App\Models\Warehouse::active()->get(['id', 'code', 'name']);
 
-        // Calculate totals
         $totalItems = $stockItems->total();
         $totalStock = \App\Models\WarehouseItem::when($request->input('warehouse_id'), function ($q, $warehouseId) {
             if ($warehouseId !== 'all') {
