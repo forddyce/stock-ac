@@ -13,7 +13,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, CheckCheck } from 'lucide-react';
 import { useSnackbar } from 'notistack';
 import { useState } from 'react';
 
@@ -77,6 +77,12 @@ export default function Fulfill({ sale }: Props) {
         const newItems = [...fulfillItems];
         newItems[index] = { ...newItems[index], [field]: value };
         setFulfillItems(newItems);
+    };
+
+    const handleAutoFillRemaining = (index: number) => {
+        const item = sale.items[index];
+        const remaining = item.qty_ordered - item.qty_fulfilled;
+        handleItemChange(index, 'qty_to_fulfill', remaining.toString());
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -226,31 +232,51 @@ export default function Fulfill({ sale }: Props) {
                                                         </span>
                                                     </TableCell>
                                                     <TableCell>
-                                                        <Input
-                                                            type="number"
-                                                            value={
-                                                                fulfillItems[
-                                                                    index
-                                                                ]
-                                                                    ?.qty_to_fulfill
-                                                            }
-                                                            onChange={(e) =>
-                                                                handleItemChange(
-                                                                    index,
-                                                                    'qty_to_fulfill',
-                                                                    e.target
-                                                                        .value,
-                                                                )
-                                                            }
-                                                            className="w-24 border-zinc-700 bg-zinc-900 text-white"
-                                                            placeholder="0"
-                                                            min="0"
-                                                            max={remaining}
-                                                            step="1"
-                                                            disabled={
-                                                                isComplete
-                                                            }
-                                                        />
+                                                        <div className="flex items-center gap-2">
+                                                            <Input
+                                                                type="number"
+                                                                value={
+                                                                    fulfillItems[
+                                                                        index
+                                                                    ]
+                                                                        ?.qty_to_fulfill
+                                                                }
+                                                                onChange={(e) =>
+                                                                    handleItemChange(
+                                                                        index,
+                                                                        'qty_to_fulfill',
+                                                                        e.target
+                                                                            .value,
+                                                                    )
+                                                                }
+                                                                className="w-24 border-zinc-700 bg-zinc-900 text-white"
+                                                                placeholder="0"
+                                                                min="0"
+                                                                max={remaining}
+                                                                step="1"
+                                                                disabled={
+                                                                    isComplete
+                                                                }
+                                                            />
+                                                            {!isComplete &&
+                                                                remaining >
+                                                                    0 && (
+                                                                    <Button
+                                                                        type="button"
+                                                                        size="sm"
+                                                                        variant="outline"
+                                                                        onClick={() =>
+                                                                            handleAutoFillRemaining(
+                                                                                index,
+                                                                            )
+                                                                        }
+                                                                        className="border-zinc-700 text-zinc-300 hover:bg-zinc-700 hover:text-white"
+                                                                        title="Auto-fill with remaining quantity"
+                                                                    >
+                                                                        <CheckCheck className="h-4 w-4" />
+                                                                    </Button>
+                                                                )}
+                                                        </div>
                                                         {errors[
                                                             `items.${index}.qty_to_fulfill`
                                                         ] && (
