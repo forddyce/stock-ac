@@ -305,7 +305,7 @@ ln -s /path/to/public_html/abc-elektronik/storage/app/public /path/to/public_htm
 ## Support Contacts
 
 - Hosting Support: [Your hosting support contact]
-- Developer: forddyce@abc-elektronik.com
+- Developer: forddyce02@gmail.com
 
 ---
 
