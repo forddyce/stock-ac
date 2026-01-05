@@ -35,9 +35,17 @@ export function AppSidebar() {
         auth: { user: { permissions: string[]; roles: string[] } };
     }>().props;
     const permissions = auth?.user?.permissions || [];
+    const roles = auth?.user?.roles || [];
 
     const hasPermission = (permission: string) =>
         permissions.includes(permission);
+
+    const hasRole = (role: string) => roles.includes(role);
+
+    const isAdmin = hasRole('admin');
+    const isPurchaseOperator = hasRole('purchase_operator');
+    const isSalesOperator = hasRole('sales_operator');
+    const isSalesPurchaseOperator = hasRole('sales_purchase_operator');
 
     const mainNavItems: NavItem[] = [
         {
@@ -47,7 +55,12 @@ export function AppSidebar() {
         },
     ];
 
-    if (hasPermission('manage_warehouses')) {
+    // Admin can see everything
+    // Purchase operator can only see purchases
+    // Sales operator can only see sales
+    // Sales-purchase operator can see both sales and purchases
+
+    if (isAdmin && hasPermission('manage_warehouses')) {
         mainNavItems.push({
             title: 'Warehouses',
             href: '/warehouses',
@@ -55,7 +68,7 @@ export function AppSidebar() {
         });
     }
 
-    if (hasPermission('manage_items')) {
+    if (isAdmin && hasPermission('manage_items')) {
         mainNavItems.push({
             title: 'Items',
             href: '/items',
@@ -63,7 +76,7 @@ export function AppSidebar() {
         });
     }
 
-    if (hasPermission('manage_suppliers')) {
+    if (isAdmin && hasPermission('manage_suppliers')) {
         mainNavItems.push({
             title: 'Suppliers',
             href: '/suppliers',
@@ -71,7 +84,7 @@ export function AppSidebar() {
         });
     }
 
-    if (hasPermission('manage_customers')) {
+    if (isAdmin && hasPermission('manage_customers')) {
         mainNavItems.push({
             title: 'Customers',
             href: '/customers',
@@ -79,7 +92,10 @@ export function AppSidebar() {
         });
     }
 
-    if (hasPermission('view_purchase') || hasPermission('create_purchase')) {
+    if (
+        (hasPermission('view_purchase') || hasPermission('create_purchase')) &&
+        (isAdmin || isPurchaseOperator || isSalesPurchaseOperator)
+    ) {
         mainNavItems.push({
             title: 'Purchases',
             href: '/purchases',
@@ -87,7 +103,10 @@ export function AppSidebar() {
         });
     }
 
-    if (hasPermission('view_sale') || hasPermission('create_sale')) {
+    if (
+        (hasPermission('view_sale') || hasPermission('create_sale')) &&
+        (isAdmin || isSalesOperator || isSalesPurchaseOperator)
+    ) {
         mainNavItems.push({
             title: 'Sales',
             href: '/sales',
@@ -95,7 +114,7 @@ export function AppSidebar() {
         });
     }
 
-    if (hasPermission('manage_sales_persons')) {
+    if (isAdmin && hasPermission('manage_sales_persons')) {
         mainNavItems.push({
             title: 'Sales Persons',
             href: '/sales-persons',
@@ -103,7 +122,10 @@ export function AppSidebar() {
         });
     }
 
-    if (hasPermission('view_transfer') || hasPermission('create_transfer')) {
+    if (
+        isAdmin &&
+        (hasPermission('view_transfer') || hasPermission('create_transfer'))
+    ) {
         mainNavItems.push({
             title: 'Transfers',
             href: '/transfers',
@@ -111,7 +133,7 @@ export function AppSidebar() {
         });
     }
 
-    if (hasPermission('create_stock_adjustment')) {
+    if (isAdmin && hasPermission('create_stock_adjustment')) {
         mainNavItems.push({
             title: 'Stock Adjustments',
             href: '/stock-adjustments',
@@ -119,7 +141,7 @@ export function AppSidebar() {
         });
     }
 
-    if (hasPermission('view_item_history')) {
+    if (isAdmin && hasPermission('view_item_history')) {
         mainNavItems.push({
             title: 'Item History',
             href: '/item-history',
@@ -127,7 +149,7 @@ export function AppSidebar() {
         });
     }
 
-    if (hasPermission('manage_users')) {
+    if (isAdmin && hasPermission('manage_users')) {
         mainNavItems.push({
             title: 'User Management',
             href: '/users',
@@ -135,7 +157,7 @@ export function AppSidebar() {
         });
     }
 
-    if (hasPermission('view_reports')) {
+    if (isAdmin && hasPermission('view_reports')) {
         mainNavItems.push({
             title: 'Sales Report',
             href: '/reports/sales',
@@ -143,7 +165,7 @@ export function AppSidebar() {
         });
     }
 
-    if (hasPermission('view_reports')) {
+    if (isAdmin && hasPermission('view_reports')) {
         mainNavItems.push({
             title: 'Stock Report',
             href: '/reports/stock',
