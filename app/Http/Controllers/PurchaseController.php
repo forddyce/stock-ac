@@ -67,10 +67,10 @@ class PurchaseController extends Controller
     private function generateNextInvoiceNo()
     {
         $today = now();
+        $year = $today->format('Y');
         $dateString = $today->format('d/m/Y');
-        $prefix = "/BELI/{$dateString}";
 
-        $lastPurchase = Purchase::where('invoice_no', 'like', "%{$prefix}")
+        $lastPurchase = Purchase::whereYear('purchase_date', $year)
             ->orderBy('invoice_no', 'desc')
             ->first();
 
@@ -83,7 +83,7 @@ class PurchaseController extends Controller
             }
         }
 
-        return sprintf('%04d', $nextNumber) . $prefix;
+        return sprintf('%04d', $nextNumber) . "/BELI/{$dateString}";
     }
 
     public function store(Request $request)

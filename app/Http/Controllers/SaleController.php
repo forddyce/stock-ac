@@ -84,10 +84,10 @@ class SaleController extends Controller
     private function generateNextInvoiceNo()
     {
         $today = now();
+        $year = $today->format('Y');
         $dateString = $today->format('d/m/Y');
-        $prefix = "/ABC/{$dateString}";
 
-        $lastSale = Sale::where('invoice_no', 'like', "%{$prefix}")
+        $lastSale = Sale::whereYear('sale_date', $year)
             ->orderBy('invoice_no', 'desc')
             ->first();
 
@@ -100,7 +100,7 @@ class SaleController extends Controller
             }
         }
 
-        return sprintf('%04d', $nextNumber) . $prefix;
+        return sprintf('%04d', $nextNumber) . "/ABC/{$dateString}";
     }
 
     public function store(Request $request)
